@@ -27,3 +27,9 @@ processed/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Large data files
+Datasets/
+Answer Sheets/
+BaseMap.png
+*.pdf
