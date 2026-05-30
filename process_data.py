@@ -469,9 +469,9 @@ def main():
         "job_summary.parquet": df_emp.rename(columns={"avg_hourlyRate": "avg_hourly_rate"}),
         "building_types.parquet": building_types,
         "pubs.parquet": pubs[["pubId", "hourlyCost", "maxOccupancy", "x", "y", "buildingId"]],
-        "restaurants.parquet": restaurants[["restaurantId", "foodCost", "maxOccupancy", "x", "y", "buildingId"]],
+        "restaurants.parquet": restaurants[["restaurantId", "foodCost", "maxOccupancy ", "x", "y", "buildingId"]].rename(columns={"maxOccupancy ": "maxOccupancy"}),
         "schools.parquet": schools[["schoolId", "monthlyCost", "maxEnrollment", "x", "y", "buildingId"]],
-        "apartments.parquet": apartments[["apartmentId", "rentalCost", "maxOccupancy", "numberOfRooms", "x", "y", "buildingId"]],
+        "apartments.parquet": apartments[["apartmentId", "rentalCost", "maxOccupancy ", "numberOfRooms", "x", "y", "buildingId"]].rename(columns={"maxOccupancy ": "maxOccupancy"}),
     }
 
     for fname, df in outputs.items():
