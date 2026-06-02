@@ -1,95 +1,153 @@
-# MC1 Dashboard — 从数据展示到分析报告的改进计划
+# MC1 Dashboard — 改进计划与进度追踪
 
-> 当前状态：Dashboard 是数据浏览工具（展示分布图、统计指标）
-> 目标状态：能回答 MC1 四个问题的分析报告（洞察 + 证据 + 结论）
+> 初始状态 (2026-05-30)：Dashboard 是数据浏览工具（展示分布图、统计指标）
+> 当前状态 (2026-06-02)：V2 分析报告 — Q1-Q4 均有分析结论和量化证据，待生成 Answer Sheet 提交
 
 ---
 
-## 差距分析
+## 进度总览
 
-| | 当前状态 | MC1 要求 |
+| Phase | 内容 | 状态 | 备注 |
+|---|---|---|---|
+| Phase 1 | 数据处理增强 | ✅ 完成 | 社交网络分析在 app.py 内用 cache 实现，未改 process_data.py |
+| Phase 2 | Q1 人口画像 | ✅ 完成 | 5 个 Finding + 交叉分析 + 结论 |
+| Phase 3 | Q2 社交活动 | ✅ 基本完成 | 10 个 Pattern，部分证据需加强 |
+| Phase 4 | Q3 商业经济 | ✅ 完成 | 识别为小型服务经济，5 个 Finding |
+| Phase 5 | Q4 城镇总结 | ✅ 基本完成 | 三栏信息图 + 地图，可进一步视觉优化 |
+| Phase 6 | 整体打磨 | ⏳ 未开始 | 配色/排版/注释 |
+
+---
+
+## 已完成工作详情
+
+### Phase 1: 数据处理增强 ✅
+- [x] Task 1: 社交网络图分析 — Louvain 社区检测（28 社区, modularity 0.52）、betweenness centrality、clustering coefficient
+- [x] Task 2: 时间序列聚合 — 小时级活动模式分析（hourly_activity 已存在于 processed/）
+- [x] Task 3: 交叉分析 — 年龄 × 社交度、教育 × 收入（在 app.py `compute_cross_analysis()`）
+- [ ] Task 4: 场馆关联分析 — 未实施（签到序列 → 场馆共现、热门路线）
+
+### Phase 2: Q1 人口画像 ✅
+- [x] 提炼 5 个关键人口特征（年龄结构/教育经济/家庭结构/兴趣分布/财务健康）
+- [x] 每个 Finding 有分析文字框 + 配套图表
+- [x] 底部综合结论（Who Lives in EngageTown?）
+- [ ] 可改进：年龄-教育交叉分析图、收入分位数分析
+
+### Phase 3: Q2 社交活动 ✅
+已识别的 10 个模式：
+1. [x] 度分布幂律特征
+2. [x] 强社区结构（28 社区）
+3. [x] 高局部聚类
+4. [x] 场馆类型偏好（Apartment/Workplace/Restaurant/Pub）
+5. [x] 昼夜活动节律
+6. [x] 年龄与社交关联
+7. [x] 关键桥梁人物
+8. [x] 交互频率异质性
+9. [x] 社交/娱乐出行主导
+10. [x] 场馆地理聚类
+
+需加强的项：
+- [ ] Pattern 5: 补充工作日 vs 周末差异（需提取 day-of-week）
+- [ ] 部分模式增加统计检验（如度分布的幂律拟合优度）
+- [ ] Pattern 1: 加入 Gini 系数或更精确的幂律指数估计
+
+### Phase 4: Q3 商业经济 ✅
+核心发现：**小型服务经济** — 253 家微型企业（2-9 人），无大型雇主。
+- [x] 雇主规模分布分析
+- [x] 财务流结构（工资收入 vs 住房/娱乐/食物支出）
+- [x] 工资分布与雇主规模交叉
+- [x] 建筑类型与商业空间利用率
+- [x] 交易模式分析（高频小额 vs 低频大额）
+- [ ] 可改进：按 employer 名称/位置推断行业细分
+
+### Phase 5: Q4 城镇总结 ✅
+- [x] 渐变横幅 + 关键指标行
+- [x] 三栏布局（Who We Are / How We Live / Our Economy）
+- [x] 迷你图表 + 地图标注
+- [x] 底部一句话总结
+- [ ] 可改进：信息图更视觉化（自定义 HTML/CSS），减少字数
+
+---
+
+## 剩余工作
+
+### 阻塞项（提交前必须完成）
+
+1. **Answer Sheet 生成**
+   - MC1 最终提交是 `index.htm`（Answer Sheet HTML）
+   - 需要：每个 Q 选取 ≤10 张静态图表 + ≤500 字英文答案
+   - 方案 A：从 app.py 中手动截图 + 写作答案文字
+   - 方案 B：写脚本导出 Plotly 图为 PNG + 自动生成 HTML
+   - 推荐方案 B，可新增 `generate_answer_sheet.py`
+
+2. **答案文字撰写**
+   - 当前 app.py 中的分析框是英文 bullet point 风格
+   - 需要凝练为 500 字以内的连贯段落（每个 Q）
+   - Q2 需要精确列出 10 个模式（编号 1-10）
+
+### 增强项（提升分析质量）
+
+3. **Q2 工作日 vs 周末分析**
+   - `daily_activity.parquet` 有 day 列，可加入 day-of-week
+   - 对比周末和工作日的签到/社交模式差异
+
+4. **Q3 产业细分**
+   - 如果能从原始数据中获得 employer 名称/地址
+   - 结合 buildingType 推断具体行业（零售/餐饮/教育/医疗等）
+
+5. **数值稳定性**
+   - 首次加载时 networkx 计算需 10-30 秒
+   - 可考虑将 `net_metrics` 也预计算并保存为 parquet
+
+### 打磨项
+
+6. **配色统一** — 当前 Q1-Q4 使用不同调色板（Blues/Greens/Reds）
+7. **图表标注** — 增加数据来源和统计注释
+8. **响应式** — 当前用 `st.columns()` 固定列数，移动端效果差
+
+---
+
+## 数据关键发现速查
+
+| 指标 | 数值 | 来源 |
 |---|---|---|
-| Q1 人口画像 | 画了年龄/教育/家庭/兴趣的分布图 | 需要综合分析，形成"这个城镇是什么样"的结论 |
-| Q2 社交活动 | 签到排行、社交度分布、出行目的 | 需要找出 10 个社交模式，每个要有证据链 |
-| Q3 商业经济 | 财务类别、雇主排行、工资分布 | 需要识别主导产业，分析经济结构 |
-| Q4 城镇总结 | 堆砌了所有指标 | 需要精选关键信息，面向居民的一页摘要 |
+| 人口 | 1,011 | participant_summary |
+| 平均年龄 | 39.1 岁 | participant_summary |
+| 家庭规模 | 2.0 人 | participant_summary |
+| 有孩比例 | 29.8% | participant_summary |
+| 兴趣组 | 10 组 (A-J)，均匀分布 | participant_summary |
+| 社交边数 | 80,483 | social_network |
+| 社区数 | 28 (modularity 0.52) | networkx Louvain |
+| 年薪总额 | $55.6M | financial_summary |
+| 雇主数 | 253 (均 5.2 人，最大 9 人) | job_summary |
+| 平均时薪 | $19.22 ($10-$41) | job_summary |
+| 最大支出 | Shelter $9.0M | financial_summary |
+| 建筑类型 | 住宅 526 / 商业 512 / 学校 4 | building_types |
 
 ---
 
-## 改进任务
+## 开发指南
 
-### Phase 1: 数据处理增强
+### 新增社交网络指标
+如需计算新的图指标，在 `app.py` 的 `compute_network_metrics()` 中添加，利用 `@st.cache_data` 自动缓存。如需持久化为 parquet：
+```python
+# 可在 process_data.py 的 main() 末尾添加
+net_metrics["degree"].to_parquet(OUTPUT / "social_degree.parquet")
+```
 
-**Task 1: 社交网络图分析**
-- 用 networkx 构建图，计算社区发现、中心性指标
-- 输出：`social_graph_metrics.parquet` (betweenness, clustering, communities)
+### 测试
+```bash
+# 启动 app
+streamlit run app.py
 
-**Task 2: 时间序列聚合**
-- 按小时/天/周聚合行为模式，识别高峰时段、周期性规律
-- 输出：`temporal_patterns.parquet`
+# 检查数据
+python3 -c "
+import pandas as pd
+from pathlib import Path
+for f in Path('processed').glob('*.parquet'):
+    df = pd.read_parquet(f)
+    print(f'{f.name}: {len(df)} rows, {list(df.columns[:3])}')
+"
 
-**Task 3: 交叉分析数据**
-- 人口属性 × 社交活跃度、教育水平 × 工资、年龄 × 出行模式
-- 输出：`cross_analysis.parquet`
-
-**Task 4: 场馆关联分析**
-- 签到序列 → 场馆共现关系、热门路线
-- 输出：`venue_correlation.parquet`
-
-### Phase 2: Q1 人口画像 — 从展示到刻画
-
-**当前问题**：只是画了分布图，没有"画像"感
-**改进方向**：
-- 提炼 5-7 个关键特征点（而非罗列所有维度）
-- 例如："以青壮年为主（均龄 39），家庭规模小（均值 2 人），教育以高中/大学为主，10 个兴趣组均匀分布"
-- 收入与支出的结构性分析（工资 vs 房租 vs 教育）
-- 可视化改为更有叙事性的图（箱线图、小提琴图、金字塔图）
-
-### Phase 3: Q2 社交活动 — 挖掘 10 个模式
-
-**当前问题**：只有签到排行和社交度分布，远远不够
-**改进方向**：
-1. 签到时间热力图（哪些时段最活跃）
-2. 场馆类型竞争分析（Pub vs Restaurant 的签到对比）
-3. 社交网络社区结构（识别紧密社交圈）
-4. 高影响力人物识别（PageRank/Betweenness Top N）
-5. 出行目的与社交的关联（吃饭出行 → 签到模式）
-6. 工作日 vs 周末行为差异
-7. 场馆地理聚类（哪些区域最热闹）
-8. 社交边权重分布的不均匀性（幂律？）
-9. 新老居民的社交融入模式
-10. 饥饿/睡眠状态对社交行为的影响
-
-### Phase 4: Q3 商业经济 — 识别主导产业
-
-**当前问题**：只有财务类别汇总和雇主排行，没有产业分析
-**改进方向**：
-- 雇主按行业分类（结合建筑类型推断）
-- 工资水平与教育要求的匹配分析
-- 财务流水的时间趋势（经济在增长还是衰退？）
-- 商业建筑 vs 住宅建筑的租金对比
-- 消费流向分析（居民的钱花在哪、从哪赚）
-
-### Phase 5: Q4 城镇总结 — 一页纸居民摘要
-
-**当前问题**：所有指标平铺，没有精选和叙事
-**改进方向**：
-- 信息图风格（infographic），而非 Dashboard
-- 精选 10-12 个关键数字
-- 按主题分组：我们是谁 / 我们如何生活 / 我们的经济
-- 地图上标注关键场所（最热门 pub、最大雇主位置等）
-
-### Phase 6: 整体改进
-
-- 左侧导航改为"报告模式"（每个 Q 一个分析报告页）
-- 图表增加注释和结论文字
-- 添加数据来源说明
-- 配色和排版优化
-
----
-
-## 优先级
-
-1. **高优先**：Phase 1 Task 1-3（数据处理增强，其他 Phase 依赖这些数据）
-2. **中优先**：Phase 2-5（逐题改进分析和可视化）
-3. **低优先**：Phase 6（打磨和美化）
+# 重新处理数据
+python3 process_data.py
+```
