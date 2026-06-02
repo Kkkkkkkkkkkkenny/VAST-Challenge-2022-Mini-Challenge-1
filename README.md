@@ -2,12 +2,6 @@
 
 Visual analytics dashboard for the fictional city of EngageTown. Part of the [IEEE VAST Challenge 2022](https://vast-challenge.github.io/2022/).
 
-## Overview
-
-**Challenge:** Analyze EngageTown's data to answer 4 questions about its population, social networks, business economy, and produce a one-page town summary.
-
-**Approach:** Streamlit dashboard with plotly visualizations + networkx graph analysis. Each question is answered with analysis findings backed by quantitative evidence.
-
 ## Quick Start
 
 ```bash
@@ -20,30 +14,56 @@ streamlit run app.py
 # 3. Open browser → http://localhost:8501
 ```
 
-**Prerequisites:** Python 3, plus packages in requirements:
+**Prerequisites:** Python 3 +
 
 ```bash
 pip install pandas fastparquet plotly streamlit networkx
 ```
 
-## Project Structure
+## Repository Contents
+
+### Tracked Files (in this repo)
 
 ```
 .
-├── app.py                  # Streamlit dashboard (4-page analysis report)
+├── app.py                  # Streamlit dashboard — 4-page visual analytics report
 ├── process_data.py         # Data pipeline: 114M rows → 14 parquet files
-├── CLAUDE.md               # Developer guide (architecture, state, TODOs)
-├── README.md               # This file
-├── BaseMap.png             # City map for venue overlay
-├── Datasets/               # Raw CSVs (gitignored, ~3GB)
-│   ├── Activity Logs/      # 72 participant status log files
-│   ├── Journals/           # Checkin, Financial, Social, Travel
-│   └── Attributes/         # Participants, Employers, Buildings, etc.
-├── processed/              # Output parquet files (gitignored, regeneratable)
+├── CLAUDE.md               # 🔧 Developer guide (architecture, data flow, TODOs, known issues)
+├── README.md               # 📖 This file — project overview, challenge requirements, quick start
 ├── docs/
-│   └── superpowers/specs/  # Improvement plan & design docs
-└── Answer Sheets/          # Official MC1 submission templates
+│   └── superpowers/
+│       ├── specs/
+│       │   └── 2026-05-30-mc1-improvement-plan.md  # 📋 Progress tracker & improvement roadmap
+│       └── plans/
+│           └── 2026-05-30-mc1-pipeline-fix.md      # Historical: pipeline bugfix plan
+└── .gitignore              # Exclusion rules for large/data files
 ```
+
+### NOT in This Repo (gitignored)
+
+| Path | Reason | How to Obtain |
+|------|--------|---------------|
+| `Datasets/` | ~3GB raw CSV data | Download from [VAST Challenge 2022](https://vast-challenge.github.io/2022/) |
+| `processed/` | Regeneratable parquet files | Run `python3 process_data.py` after placing Datasets/ |
+| `BaseMap.png` | Large binary (455KB) | Included in official VAST data package |
+| `Answer Sheets/` | Official submission templates | Included in official VAST data package |
+| `VAST Challenge 2022 Dataset Descriptions.pdf` | Official PDF | Included in official VAST data package |
+| `venv/` | Python virtual environment | Create locally with `python3 -m venv venv` |
+| `.streamlit/` | Streamlit config | Auto-generated on first run |
+
+> **To set up from scratch:** Download the VAST Challenge 2022 MC1 data package, place `Datasets/`, `Answer Sheets/`, `BaseMap.png`, and the PDF in the project root, then run `python3 process_data.py`.
+
+## Documentation Guide
+
+Where to look for what:
+
+| What You Need | Read |
+|---------------|------|
+| What is this project? How do I run it? | `README.md` (this file) |
+| How is the code structured? What's the data flow? | [`CLAUDE.md`](CLAUDE.md) |
+| What's done? What's left to do? Priority order? | [`docs/superpowers/specs/2026-05-30-mc1-improvement-plan.md`](docs/superpowers/specs/2026-05-30-mc1-improvement-plan.md) |
+| What was the original V1 state? | Improvement plan (gap analysis section) |
+| How does the data pipeline work? | `CLAUDE.md` (data source mapping table) + `process_data.py` |
 
 ## Challenge Requirements (Official)
 
@@ -67,15 +87,6 @@ VAST Challenge 2022 Mini-Challenge 1 uses data from EngageTown, a fictional city
 
 > From your answers to questions 1-3, assemble a one-page summary that provides the key information to share with residents about the town.
 
-### Submission Format
-
-Final submission is an **Answer Sheet HTML file** (`index.htm`) containing:
-- Team name, members, tools used
-- Answers to all 4 questions with embedded images
-- Link to a video demonstrating the visual analytics process
-
-The official template is in `Answer Sheets/VAST Challenge 2022 C1 Answer Sheet.htm`.
-
 ### Dataset Description
 
 | Dataset | Files | Records | Content |
@@ -87,15 +98,23 @@ The official template is in `Answer Sheets/VAST Challenge 2022 C1 Answer Sheet.h
 | Travel Journal | 1 CSV | ~2.1M | Travel records (purpose, cost) |
 | Attributes | 8 CSV | ~2.5K | Static info: participants, employers, jobs, buildings, pubs, restaurants, schools, apartments |
 
-Full details: `VAST Challenge 2022 Dataset Descriptions.pdf` (included in repo data).
+Full details in `VAST Challenge 2022 Dataset Descriptions.pdf` (from official data package).
 
-### Constraints & Deliverables
+### Submission Format
 
-- Each Q1-Q3: max **10 images** and **500 words**
+Final submission is an **Answer Sheet HTML file** (`index.htm`) containing:
+- Team name, members, tools used, total hours
+- Answers to all 4 questions with embedded images
+- Link to a video demonstrating the visual analytics process
+
+Template: `Answer Sheets/VAST Challenge 2022 C1 Answer Sheet.htm` (from official data package).
+
+### Constraints
+
+- Q1, Q2, Q3: each max **10 images** and **500 words**
 - Q4: one-page summary
-- Video: demonstrate how visual analytics was used
-- Answer Sheet must reference all images as relative links
-- **Total working hours** and **tools used** must be reported
+- All images must be referenced as relative links in the Answer Sheet
+- Must report **tools used** and **total working hours**
 
 ---
 
@@ -127,6 +146,22 @@ Jobs.csv + Employers.csv   →  build_job_summaries()     → job_summary
 Buildings.csv              →  (value_counts)            → building_types
 ```
 
+## Data at a Glance
+
+| Metric | Value |
+|--------|-------|
+| Residents | 1,011 |
+| Average age | 39.1 |
+| Household size | 2.0 |
+| Kids | 29.8% |
+| Interest groups | 10 (A-J, evenly distributed) |
+| Social edges | 80,483 |
+| Communities | 28 (modularity 0.52) |
+| Annual wages | $55.6M |
+| Employers | 253 (avg 5.2 employees, max 9) |
+| Hourly wage | $10 – $41 (mean $19.22) |
+| Buildings | 1,042 (526 residential / 512 commercial / 4 schools) |
+
 ## Current Status (V2, 2026-06-02)
 
 **Done:**
@@ -135,6 +170,7 @@ Buildings.csv              →  (value_counts)            → building_types
 - [x] Each finding includes chart + evidence text
 - [x] Social network analysis (community detection, centrality, clustering)
 - [x] Business base identified (small-business service economy)
+- [x] Full documentation (README, CLAUDE.md, improvement plan)
 
 **Still needed:**
 - [ ] Generate Answer Sheet HTML for official submission
@@ -143,32 +179,18 @@ Buildings.csv              →  (value_counts)            → building_types
 - [ ] Q2 weekday-vs-weekend pattern analysis
 - [ ] UI polish (color consistency, responsive layout)
 
-See `CLAUDE.md` and `docs/superpowers/specs/2026-05-30-mc1-improvement-plan.md` for full details.
+More detail in [`CLAUDE.md`](CLAUDE.md) and [`docs/superpowers/specs/2026-05-30-mc1-improvement-plan.md`](docs/superpowers/specs/2026-05-30-mc1-improvement-plan.md).
 
 ## Key Technical Decisions
 
-- **Network analysis runs in-memory in app.py** (via `@st.cache_data`), not pre-computed in process_data.py. This keeps the data pipeline simple. Recomputing on first page load takes ~10-30s.
-- **All chart values are dynamic** — no hardcoded numbers. Changing the data and re-running `process_data.py` will update all visualizations.
-- **HTML analysis blocks use `unsafe_allow_html=True`** for styled evidence boxes.
-
-## Data at a Glance
-
-| Metric | Value |
-|--------|-------|
-| Residents | 1,011 |
-| Average age | 39.1 |
-| Household size | 2.0 |
-| Social edges | 80,483 |
-| Communities | 28 (modularity 0.52) |
-| Annual wages | $55.6M |
-| Employers | 253 (avg 5.2 employees) |
-| Hourly wage range | $10 – $41 |
-| Buildings | 1,042 (526 residential / 512 commercial / 4 schools) |
+- **Network analysis in-memory** — graph metrics computed in `app.py` via `@st.cache_data`, not pre-processed. Keeps `process_data.py` simple. First load +10-30s.
+- **Dynamic values** — all chart numbers are computed live from data, no hardcoded values.
+- **Evidence blocks** — HTML callout boxes with `unsafe_allow_html=True` for analysis text.
+- **No new dependencies beyond networkx** — all visualization with plotly and streamlit native components.
 
 ## References
 
-- [VAST Challenge 2022](https://vast-challenge.github.io/2022/)
-- [MC1 Dataset Description](VAST%20Challenge%202022%20Dataset%20Descriptions.pdf)
-- Streamlit: https://streamlit.io
-- Plotly: https://plotly.com/python/
-- NetworkX: https://networkx.org
+- [VAST Challenge 2022 Official Site](https://vast-challenge.github.io/2022/)
+- [Streamlit Documentation](https://docs.streamlit.io)
+- [Plotly Python](https://plotly.com/python/)
+- [NetworkX Documentation](https://networkx.org)
