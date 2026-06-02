@@ -45,14 +45,68 @@ pip install pandas fastparquet plotly streamlit networkx
 └── Answer Sheets/          # Official MC1 submission templates
 ```
 
-## The Four Questions
+## Challenge Requirements (Official)
 
-| Page | Question | Key Findings |
-|------|----------|-------------|
-| Q1 Demographics | Characterize the town's population | 1,011 residents, avg age 39, small households (2.0), 30% have kids, 10 evenly-distributed interest groups |
-| Q2 Social Activities | Describe 10 patterns in social networks | Power-law degree distribution, 28 communities (modularity 0.52), tight-knit clusters, diurnal activity rhythm, bridge individuals |
-| Q3 Business & Economy | Identify the predominant business base | **253 micro-enterprises** (2-9 employees each) — a small-business service economy. No large corporations. Balanced residential/commercial building mix. |
-| Q4 Town Summary | One-page summary for residents | Infographic layout: population, social life, economy, map with venue markers |
+VAST Challenge 2022 Mini-Challenge 1 uses data from EngageTown, a fictional city. The data was collected from **1,011 volunteers** over **15 months** (March 2022 – May 2023), covering their activities, social interactions, finances, and travel.
+
+### The Four Questions
+
+**Q1 — Demographics** (≤10 images, ≤500 words)
+
+> Assuming the volunteers are representative of the city's population, characterize what you can about the demographics of the town. Provide your rationale and supporting data.
+
+**Q2 — Social Activities** (≤10 images, ≤500 words)
+
+> Consider the social activities in the community. What patterns do you see in the social networks in the town? Describe up to ten significant patterns you observe, with evidence and rationale.
+
+**Q3 — Business & Economy** (≤10 images, ≤500 words)
+
+> Identify the predominant business base of the town. Describe patterns you identify.
+
+**Q4 — Town Summary** (1 page)
+
+> From your answers to questions 1-3, assemble a one-page summary that provides the key information to share with residents about the town.
+
+### Submission Format
+
+Final submission is an **Answer Sheet HTML file** (`index.htm`) containing:
+- Team name, members, tools used
+- Answers to all 4 questions with embedded images
+- Link to a video demonstrating the visual analytics process
+
+The official template is in `Answer Sheets/VAST Challenge 2022 C1 Answer Sheet.htm`.
+
+### Dataset Description
+
+| Dataset | Files | Records | Content |
+|---------|-------|---------|---------|
+| Activity Logs | 72 CSV | ~114M | Timestamped participant status (mode, hunger, sleep, balance, location) |
+| Checkin Journal | 1 CSV | ~1.6M | Venue check-ins (venue ID, type) |
+| Financial Journal | 1 CSV | ~1.4M | Financial transactions (category, amount) |
+| Social Network | 1 CSV | ~3.7M | Social interactions between participant pairs |
+| Travel Journal | 1 CSV | ~2.1M | Travel records (purpose, cost) |
+| Attributes | 8 CSV | ~2.5K | Static info: participants, employers, jobs, buildings, pubs, restaurants, schools, apartments |
+
+Full details: `VAST Challenge 2022 Dataset Descriptions.pdf` (included in repo data).
+
+### Constraints & Deliverables
+
+- Each Q1-Q3: max **10 images** and **500 words**
+- Q4: one-page summary
+- Video: demonstrate how visual analytics was used
+- Answer Sheet must reference all images as relative links
+- **Total working hours** and **tools used** must be reported
+
+---
+
+## Key Findings
+
+| Q | Question | Our Answer (Dashboard Page) |
+|---|----------|---------------------------|
+| Q1 | Characterize demographics | 1,011 residents, avg age 39, small households (2.0), 30% have kids, 10 evenly-distributed interest groups. 5 analysis findings with cross-referenced charts. |
+| Q2 | 10 social patterns | Power-law degree distribution, 28 communities (modularity 0.52), tight-knit clusters, diurnal rhythm, bridge individuals, venue preferences, demographic correlations. Each pattern = chart + evidence block. |
+| Q3 | Predominant business base | **253 micro-enterprises** (2-9 employees each) — a small-business service economy. No large corporations. Annual wages $55.6M. 5 economic findings. |
+| Q4 | One-page summary | Three-column infographic: Who We Are / How We Live / Our Economy + venue map. |
 
 ## Data Pipeline
 
