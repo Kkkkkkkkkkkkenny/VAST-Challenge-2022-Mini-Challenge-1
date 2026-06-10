@@ -474,7 +474,7 @@ elif page.startswith("🤝"):
 
     avg_clust = net_metrics["clustering"]["clustering_coefficient"].mean()
     clust_ratio = avg_clust / net_metrics['density']
-    top_betweenness = net_metrics["betweenness"].nlargest(3, "betweenness")
+    top_betweenness = net_metrics["betweenness"].nlargest(3, "betweenness_centrality")
 
     st.markdown(f"""
     <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #B279A2; margin:12px 0;">
@@ -998,7 +998,7 @@ elif page.startswith("🏭"):
         fig_txn.update_layout(height=400, showlegend=False)
         st.plotly_chart(fig_txn, width='stretch')
     with col_r:
-        fig_avg = px.bar(fin_plot.sort_values("avg_amount".abs()), y="category",
+        fig_avg = px.bar(fin_plot.sort_values("avg_amount", key=abs), y="category",
                          x=fin_plot["avg_amount"].abs(),
                          title="各类别平均交易金额", orientation="h",
                          color=fin_plot["avg_amount"].abs(), color_continuous_scale="Reds",
