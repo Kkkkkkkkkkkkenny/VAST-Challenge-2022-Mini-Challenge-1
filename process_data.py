@@ -17,13 +17,15 @@ import pandas as pd
 import numpy as np
 
 warnings.filterwarnings("ignore")
-
-BASE_DIR = "/mnt/d/homework/visulization/finalwork/VAST-Challenge-2022"
-DATASETS_DIR = os.path.join(BASE_DIR, "Datasets")
+# Script directory (project root where app.py, process_data.py live)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Data root is one level up in the parallel VAST-Challenge-2022 directory
+DATA_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "VAST-Challenge-2022", "VAST-Challenge-2022"))
+DATASETS_DIR = os.path.join(DATA_ROOT, "Datasets")
 ACTIVITY_DIR = os.path.join(DATASETS_DIR, "Activity Logs")
 JOURNALS_DIR = os.path.join(DATASETS_DIR, "Journals")
 ATTR_DIR = os.path.join(DATASETS_DIR, "Attributes")
-OUTPUT_DIR = os.path.join(BASE_DIR, "processed")
+OUTPUT_DIR = os.path.join(SCRIPT_DIR, "processed")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
