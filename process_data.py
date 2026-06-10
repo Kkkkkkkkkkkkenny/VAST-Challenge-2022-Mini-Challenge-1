@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore")
 # Script directory (project root where app.py, process_data.py live)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Data root is one level up in the parallel VAST-Challenge-2022 directory
-DATA_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "VAST-Challenge-2022", "VAST-Challenge-2022"))
+DATA_ROOT = SCRIPT_DIR  # project root = VAST-Challenge-2022/ (Datasets/ lives here)
 DATASETS_DIR = os.path.join(DATA_ROOT, "Datasets")
 ACTIVITY_DIR = os.path.join(DATASETS_DIR, "Activity Logs")
 JOURNALS_DIR = os.path.join(DATASETS_DIR, "Journals")

@@ -299,9 +299,9 @@ if page.startswith("📊"):
     with col_r:
         st.plotly_chart(make_q1_joviality_hist(ps), use_container_width=True)
 
-    bal_median = ps['availableBalance'].median()
-    bal_mean = ps['availableBalance'].mean()
-    bal_skew = ps['availableBalance'].skew()
+    bal_median = ps['avg_balance'].median()
+    bal_mean = ps['avg_balance'].mean()
+    bal_skew = ps['avg_balance'].skew()
     jov_mean = ps['joviality'].mean()
     jov_std = ps['joviality'].std()
 

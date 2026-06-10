@@ -25,9 +25,9 @@ from collections import Counter
 # ═══════════════════════════════════════════════════════════════════════
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_ROOT = (SCRIPT_DIR / ".." / "VAST-Challenge-2022" / "VAST-Challenge-2022").resolve()
+DATA_ROOT = SCRIPT_DIR  # project root = VAST-Challenge-2022/ (Datasets/ lives here)
 PROCESSED = SCRIPT_DIR / "processed"
-BASE = DATA_ROOT  # backward compatibility alias (BaseMap.png lives here)
+BASE = SCRIPT_DIR  # project root (BaseMap.png, etc.)
 
 # ═══════════════════════════════════════════════════════════════════════
 # COLOR PALETTE
