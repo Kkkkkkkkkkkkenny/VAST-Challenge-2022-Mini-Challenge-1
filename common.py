@@ -92,7 +92,15 @@ def compute_network_metrics(social_df):
     )
 
     # Betweenness centrality (on largest component for performance)
-    largest_cc = G.subgraph(max(nx.connected_components(G), key=len))
+    components = list(nx.connected_components(G))
+    if not components:
+        metrics["betweenness"] = pd.DataFrame(columns=["participantId", "betweenness_centrality"])
+        metrics["clustering"] = pd.DataFrame(columns=["participantId", "clustering_coefficient"])
+        metrics["communities"] = pd.DataFrame(columns=["participantId", "community"])
+        metrics["num_communities"] = 0
+        metrics["modularity"] = 0
+        return metrics
+    largest_cc = G.subgraph(max(components, key=len))
     betweenness = nx.betweenness_centrality(largest_cc, k=min(200, len(largest_cc)), weight="weight")
     metrics["betweenness"] = pd.DataFrame(
         {"participantId": list(betweenness.keys()), "betweenness_centrality": list(betweenness.values())}
@@ -262,8 +270,8 @@ def compute_weekend_metrics(ha, mode_cols):
 
     we_work_pct = 100 * ha.loc[we_mask, "mode_AtWork"].sum() / we_total if we_total > 0 else 0
     wd_work_pct = 100 * ha.loc[wd_mask, "mode_AtWork"].sum() / wd_total if wd_total > 0 else 0
-    we_rec_pct = 100 * ha.loc[we_mask, "mode_Recreation"].sum() / we_total if we_total > 0 else 0
-    wd_rec_pct = 100 * ha.loc[wd_mask, "mode_Recreation"].sum() / wd_total if wd_total > 0 else 0
+    we_rec_pct = 100 * ha.loc[we_mask, "mode_AtRecreation"].sum() / we_total if we_total > 0 else 0
+    wd_rec_pct = 100 * ha.loc[wd_mask, "mode_AtRecreation"].sum() / wd_total if wd_total > 0 else 0
 
     # Peak hours
     weekend_hourly = ha.groupby(["is_weekend", "hour_num"])["total_mode"].sum().reset_index()
@@ -630,51 +638,56 @@ def make_q2_top_venues(vc):
     return fig
 
 
-def make_q2_hourly_activity(ha):
-    """Activity by hour of day bar chart."""
-    hourly_total = ha.groupby("hour_num")["total_mode"].sum().reset_index()
-    fig = px.bar(hourly_total, x="hour_num", y="total_mode",
-                 title="Activity by Hour of Day",
-                 labels={"hour_num": "Hour", "total_mode": "Activity Records"},
-                 color="total_mode", color_continuous_scale="Viridis")
-    fig.update_layout(height=400, showlegend=False)
-    return fig
-
-
-def make_q2_mode_area(ha, mode_cols):
-    """Activity modes throughout the day stacked area chart."""
-    mode_hourly = ha.groupby("hour_num")[mode_cols].sum()
+def make_q2_hourly_activity(ha, mode_cols):
+    """Activity modes by hour of day line chart (average across all days)."""
+    mode_hourly = ha.groupby("hour_num")[mode_cols].mean()
     mode_hourly.columns = [c.replace("mode_", "") for c in mode_hourly.columns]
-    fig = px.area(mode_hourly, title="Activity Modes Throughout the Day",
+    fig = px.line(mode_hourly, title="Activity Modes by Hour of Day",
                   color_discrete_sequence=COLORS)
-    fig.update_layout(height=400, xaxis_title="Hour", yaxis_title="Records",
+    fig.update_layout(height=400, xaxis_title="Hour", yaxis_title="Avg People",
                       legend=dict(orientation="h", y=1.1))
     return fig
 
 
-def make_q2_weekday_weekend(ha):
-    """Weekday vs weekend activity comparison bar chart."""
-    weekend_hourly = ha.groupby(["is_weekend", "hour_num"])["total_mode"].sum().reset_index()
-    weekend_hourly["Day Type"] = weekend_hourly["is_weekend"].map({False: "Weekday", True: "Weekend"})
-    fig = px.bar(weekend_hourly, x="hour_num", y="total_mode", color="Day Type",
-                 barmode="group",
-                 title="Activity by Hour: Weekday vs Weekend",
-                 labels={"hour_num": "Hour", "total_mode": "Activity Records", "Day Type": ""},
-                 color_discrete_sequence=[PALETTE["primary"], PALETTE["accent"]])
-    fig.update_layout(height=400, legend=dict(orientation="h", y=1.05))
+def make_q2_mode_area(ha, mode_cols):
+    """Activity modes throughout the day stacked area chart (average across all days)."""
+    mode_hourly = ha.groupby("hour_num")[mode_cols].mean()
+    mode_hourly.columns = [c.replace("mode_", "") for c in mode_hourly.columns]
+    fig = px.area(mode_hourly, title="Average Activity Modes Throughout the Day",
+                  color_discrete_sequence=COLORS)
+    fig.update_layout(height=400, xaxis_title="Hour", yaxis_title="Avg Records",
+                      legend=dict(orientation="h", y=1.1))
+    return fig
+
+
+def make_q2_weekday_weekend(ha, mode_cols):
+    """Weekday vs weekend activity modes line chart (average across days)."""
+    hourly_avg = ha.groupby(["is_weekend", "hour_num"])[mode_cols].mean().reset_index()
+    hourly_avg["Day Type"] = hourly_avg["is_weekend"].map({False: "Weekday", True: "Weekend"})
+    melted = hourly_avg.melt(id_vars=["is_weekend", "hour_num", "Day Type"],
+                             value_vars=mode_cols, var_name="Mode", value_name="Avg People")
+    melted["Mode"] = melted["Mode"].str.replace("mode_", "")
+    melted["Group"] = melted["Day Type"] + " - " + melted["Mode"]
+    fig = px.line(melted, x="hour_num", y="Avg People", color="Mode", line_dash="Day Type",
+                  title="Activity Modes by Hour: Weekday vs Weekend",
+                  labels={"hour_num": "Hour", "Avg People": "Avg People", "Mode": "", "Day Type": ""},
+                  color_discrete_sequence=COLORS)
+    fig.update_layout(height=400, legend=dict(orientation="h", y=1.1))
     return fig
 
 
 def make_q2_weekday_weekend_modes(ha, mode_cols):
-    """Activity mode composition weekday vs weekend grouped bar chart."""
-    weekend_mode = ha.groupby("is_weekend")[mode_cols].sum()
+    """Activity mode composition weekday vs weekend grouped bar chart (average per hour)."""
+    # Calculate average activity per hour for each mode, then aggregate weekday vs weekend
+    hourly_avg = ha.groupby(["is_weekend", "hour_num"])[mode_cols].mean().reset_index()
+    weekend_mode = hourly_avg.groupby("is_weekend")[mode_cols].mean()
     weekend_mode["Day Type"] = weekend_mode.index.map({False: "Weekday", True: "Weekend"})
-    weekend_mode_melt = weekend_mode.melt(id_vars="Day Type", var_name="Mode", value_name="Count")
+    weekend_mode_melt = weekend_mode.melt(id_vars="Day Type", var_name="Mode", value_name="Avg Count")
     weekend_mode_melt["Mode"] = weekend_mode_melt["Mode"].str.replace("mode_", "")
-    fig = px.bar(weekend_mode_melt, x="Mode", y="Count", color="Day Type",
+    fig = px.bar(weekend_mode_melt, x="Mode", y="Avg Count", color="Day Type",
                  barmode="group",
-                 title="Activity Mode Composition: Weekday vs Weekend",
-                 labels={"Count": "Total Records", "Mode": "Activity Mode", "Day Type": ""},
+                 title="Activity Mode Composition: Weekday vs Weekend (Avg per Hour)",
+                 labels={"Avg Count": "Avg Activity Records per Hour", "Mode": "Activity Mode", "Day Type": ""},
                  color_discrete_sequence=[PALETTE["primary"], PALETTE["accent"]])
     fig.update_layout(height=400, legend=dict(orientation="h", y=1.05))
     return fig
@@ -1025,8 +1038,8 @@ def make_q2_daily_activity_trends(daily_activity, mode_cols):
     fig = go.Figure()
     mode_labels = {
         "mode_AtHome": "At Home", "mode_AtWork": "At Work",
-        "mode_Transport": "Transport", "mode_Recreation": "Recreation",
-        "mode_Eating": "Eating"
+        "mode_Transport": "Transport", "mode_AtRecreation": "Recreation",
+        "mode_AtRestaurant": "Eating"
     }
     
     # 调配一组更现代柔和、对比鲜明的折线配色
@@ -1150,8 +1163,8 @@ def make_q2_hourly_density_animation(ha, mode_cols, output_path):
         "mode_AtHome": "At Home",
         "mode_AtWork": "At Work",
         "mode_Transport": "Transport",
-        "mode_Recreation": "Recreation",
-        "mode_Eating": "Eating",
+        "mode_AtRecreation": "Recreation",
+        "mode_AtRestaurant": "Eating",
     }
     colors = ["#4C78A8", "#E45756", "#F58518", "#54A24B", "#B279A2"]
 

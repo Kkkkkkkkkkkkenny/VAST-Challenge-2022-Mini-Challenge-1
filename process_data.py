@@ -199,7 +199,7 @@ def process_activity_logs():
     hourly_rows = []
     for hr in sorted(hourly_mode.keys()):
         row = {"hour": hr}
-        for m in ["AtHome", "AtWork", "Transport", "Recreation", "Eating"]:
+        for m in ["AtHome", "AtWork", "Transport", "AtRecreation", "AtRestaurant"]:
             row[f"mode_{m}"] = hourly_mode[hr].get(m, 0)
         for s in ["JustAte", "Hungry", "Starving"]:
             row[f"hunger_{s}"] = hourly_hunger[hr].get(s, 0)
@@ -212,7 +212,7 @@ def process_activity_logs():
     daily_rows = []
     for day in sorted(daily_mode.keys()):
         row = {"day": pd.Timestamp(day)}
-        for m in ["AtHome", "AtWork", "Transport", "Recreation", "Eating"]:
+        for m in ["AtHome", "AtWork", "Transport", "AtRecreation", "AtRestaurant"]:
             row[f"mode_{m}"] = daily_mode[day].get(m, 0)
         row["total_count"] = daily_count.get(day, 0)
         row["avg_balance"] = round(

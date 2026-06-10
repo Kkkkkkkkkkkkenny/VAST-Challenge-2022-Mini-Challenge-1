@@ -180,9 +180,9 @@ if page.startswith("📊"):
 
     col_l, col_r = st.columns([2, 1])
     with col_l:
-        st.plotly_chart(make_q1_age_histogram(ps), width='stretch')
+        st.plotly_chart(make_q1_age_histogram(ps), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q1_age_pie(ps), width='stretch')
+        st.plotly_chart(make_q1_age_pie(ps), use_container_width=True)
 
     age_bins = [0, 18, 30, 45, 60, 100]
     age_labels_cn = ["0–17（未成年）", "18–29（青年）", "30–44（壮年）", "45–59（中年）", "60+（老年）"]
@@ -192,7 +192,7 @@ if page.startswith("📊"):
     working_age_pct = (ps_age["age"].between(18, 59).mean() * 100)
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #2E4057; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #2E4057; margin:12px 0;">
     <strong>📌 分析：</strong>EngageTown 人口年龄分布呈现典型的<b>劳动力主导型结构</b>，均值 {ps['age'].mean():.1f} 岁，
     中位数 {ps['age'].median():.0f} 岁。18–59 岁劳动年龄人口占比约 <b>{working_age_pct:.0f}%</b>，构成城市经济活动的核心力量。
     年龄分布呈现轻微右偏态——老年人口（60+）相对稀少，暗示该城镇为<b>以中青年为主体的经济活跃社区</b>，
@@ -211,19 +211,19 @@ if page.startswith("📊"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q1_education_bar(ps), width='stretch')
+        st.plotly_chart(make_q1_education_bar(ps), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q1_edu_balance(ps), width='stretch')
+        st.plotly_chart(make_q1_edu_balance(ps), use_container_width=True)
 
     edu_dist = ps["educationLevel"].value_counts()
     top_edu = edu_dist.index[0]
     bachelors_pct = edu_dist.get("Bachelors", 0) / len(ps) * 100
-    hs_pct = edu_dist.get("High School or College", 0) / len(ps) * 100
+    hs_pct = edu_dist.get("HighSchoolOrCollege", 0) / len(ps) * 100
     grad_pct = edu_dist.get("Graduate", 0) / len(ps) * 100
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
-    <strong>📌 分析：</strong>居民受教育程度集中于"<b>高中或大学肄业</b>"（{edu_dist.get('High School or College', 0)} 人，
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
+    <strong>📌 分析：</strong>居民受教育程度集中于"<b>高中或大学肄业</b>"（{edu_dist.get('HighSchoolOrCollege', 0)} 人，
     {hs_pct:.1f}%）与"<b>学士</b>"（{edu_dist.get('Bachelors', 0)} 人，{bachelors_pct:.1f}%）两个层级，
     二者合计占总人口七成以上。"研究生"学历者仅 {edu_dist.get('Graduate', 0)} 人（{grad_pct:.1f}%），
     占比最小。教育水平与可用余额呈<b>正向梯度关系</b>——学士及以上学历者的平均可用余额显著高于低学历群体，
@@ -243,16 +243,16 @@ if page.startswith("📊"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q1_household_size(ps), width='stretch')
+        st.plotly_chart(make_q1_household_size(ps), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q1_kids_pie(ps), width='stretch')
+        st.plotly_chart(make_q1_kids_pie(ps), use_container_width=True)
 
     kids_pct = ps['haveKids'].eq(True).mean() * 100
     hs_dist = ps['householdSize'].value_counts().sort_index()
     hh_mode = hs_dist.idxmax()
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
     <strong>📌 分析：</strong>户均人口仅 <b>{ps['householdSize'].mean():.1f} 人</b>，众数亦为 {hh_mode} 人，
     呈现明显的<b>小家庭化特征</b>。有子女家庭占比约 <b>{kids_pct:.0f}%</b>，意味着近七成住户为无子女家庭
     （二人户或无子女的独居/合住）。将两项数据交叉来看：大量二人户无子女，少量家庭承担子女养育功能。
@@ -269,14 +269,14 @@ if page.startswith("📊"):
     st.markdown("## 四、兴趣群体与社会多样性——均匀分布的社群结构")
     st.markdown("*居民兴趣偏好的分布特征及其社会整合意义*")
 
-    st.plotly_chart(make_q1_interest_groups(ps), width='stretch')
+    st.plotly_chart(make_q1_interest_groups(ps), use_container_width=True)
 
     ig_counts = ps['interestGroup'].value_counts()
     ig_min, ig_max = ig_counts.min(), ig_counts.max()
     ig_cv = ig_counts.std() / ig_counts.mean()  # coefficient of variation
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #E45756; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #E45756; margin:12px 0;">
     <strong>📌 分析：</strong>{ps['interestGroup'].nunique()} 个兴趣组（A–J）的成员分布<b>高度均匀</b>——
     各组规模介于 {ig_min} 至 {ig_max} 人，变异系数仅 {ig_cv:.3f}。这种近乎等量的分配模式并非随机过程所能产生，
     暗示存在<b>人为设计或社区自组织机制</b>在调控组间平衡。均匀分布的社会意义在于：避免了单一兴趣领域的
@@ -295,9 +295,9 @@ if page.startswith("📊"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q1_balance_hist(ps), width='stretch')
+        st.plotly_chart(make_q1_balance_hist(ps), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q1_joviality_hist(ps), width='stretch')
+        st.plotly_chart(make_q1_joviality_hist(ps), use_container_width=True)
 
     bal_median = ps['avg_balance'].median()
     bal_mean = ps['avg_balance'].mean()
@@ -306,7 +306,7 @@ if page.startswith("📊"):
     jov_std = ps['joviality'].std()
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #F58518; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #F58518; margin:12px 0;">
     <strong>📌 分析：</strong>可用余额分布呈<b>显著右偏态</b>（偏度 {bal_skew:.2f}），中位数 ${bal_median:,.0f}
     低于均值 ${bal_mean:,.0f}，表明多数居民持有中等水平余额，少数高净值个体拉高了整体均值——
     这一分布形态与大多数真实社区中观察到的财富集中现象一致。Joviality（幸福感指标）近似<b>正态分布</b>
@@ -321,8 +321,8 @@ if page.startswith("📊"):
     st.markdown("---")
     st.markdown("## Q1 总结：EngageTown 的人口基底")
     st.markdown(f"""
-    <div style="background:linear-gradient(135deg, #f8f9fb 0%, #eef1f5 100%);
-    padding:20px 24px; border-radius:10px; border:1px solid #d0d5dd; margin-top:8px;">
+    <div style="background:rgba(128,128,128,0.06);
+    padding:20px 24px; border-radius:10px; border:1px solid rgba(128,128,128,0.15); margin-top:8px;">
 
     <p style="font-size:1.05em; line-height:1.9; text-align:justify;">
     EngageTown 是一座以 <b>{len(ps):,} 名中青年居民</b>为主体的中小规模社区，年龄均值 {ps['age'].mean():.1f} 岁，
@@ -337,7 +337,7 @@ if page.startswith("📊"):
     <hr style="border-color:#d0d5dd; margin:16px 0;">
 
     <table style="width:100%; font-size:0.93em; border-collapse:collapse;">
-    <tr style="background:#e8ecf1;">
+    <tr style="background:rgba(128,128,128,0.15);">
         <td style="padding:8px 12px; width:25%;"><b>维度</b></td>
         <td style="padding:8px 12px; width:75%;"><b>核心发现</b></td>
     </tr>
@@ -345,7 +345,7 @@ if page.startswith("📊"):
         <td style="padding:8px 12px;">🔢 人口规模</td>
         <td style="padding:8px 12px;">{len(ps):,} 人，劳动年龄占比 ~{working_age_pct:.0f}%，抚养比健康</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">📊 年龄结构</td>
         <td style="padding:8px 12px;">均值 {ps['age'].mean():.1f} 岁，右偏态分布，老年人口稀少</td>
     </tr>
@@ -353,7 +353,7 @@ if page.startswith("📊"):
         <td style="padding:8px 12px;">🎓 教育水平</td>
         <td style="padding:8px 12px;">高中/大学肄业 + 学士为主（合计 ~{hs_pct + bachelors_pct:.0f}%），教育-财富正相关</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">🏘️ 家庭结构</td>
         <td style="padding:8px 12px;">户均 {ps['householdSize'].mean():.1f} 人，{kids_pct:.0f}% 有子女，小家庭化主流</td>
     </tr>
@@ -361,7 +361,7 @@ if page.startswith("📊"):
         <td style="padding:8px 12px;">🎯 社会多样性</td>
         <td style="padding:8px 12px;">{ps['interestGroup'].nunique()} 组均匀分布（CV={ig_cv:.3f}），设计性均衡</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">💰 经济状况</td>
         <td style="padding:8px 12px;">财富右偏（偏度 {bal_skew:.2f}），幸福感正态分布，二者弱相关</td>
     </tr>
@@ -403,7 +403,7 @@ elif page.startswith("🤝"):
     # ================================================================
     # Pattern 1: Degree Distribution
     # ================================================================
-    st.markdown("## 模式一：度分布呈重尾（幂律）特征")
+    st.markdown("## 模式一：度分布呈近似正态——社交连接高度均质化")
     st.markdown("*社交连接的非均质分布——少数枢纽与多数普通节点*")
 
     deg_df = net_metrics["degree"]
@@ -411,9 +411,9 @@ elif page.startswith("🤝"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_degree_distribution(deg_df), width='stretch')
+        st.plotly_chart(make_q2_degree_distribution(deg_df), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q2_rank_frequency(deg_df), width='stretch')
+        st.plotly_chart(make_q2_rank_frequency(deg_df), use_container_width=True)
 
     top_degree = deg_df_nonzero.nlargest(5, "weighted_degree")
     top_ids = ', '.join(map(str, top_degree['participantId'].tolist()))
@@ -422,13 +422,14 @@ elif page.startswith("🤝"):
     max_deg = deg_df_nonzero["weighted_degree"].max()
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
-    <strong>📌 证据：</strong>度分布在双对数坐标下呈现近似线性衰减——这是<b>幂律分布（无标度网络）的典型特征</b>。
-    均值 {avg_deg:.1f}、中位数 {med_deg:.0f}、最大值 {max_deg}，均值远超中位数进一步佐证了右偏态。
-    度最高的 5 位居民（ID：{top_ids}）构成了网络的<b>社交枢纽</b>，其连接数远超普通节点。
-    这一结构特征与真实社会网络（如学术合作网、在线社交网络）高度吻合——少数个体承担了大量社会连接，
-    多数人维持中等规模的社交圈。该结构对信息传播具有双重含义：一方面枢纽节点加速信息扩散；
-    另一方面，网络对枢纽节点的过度依赖也构成<b>结构性脆弱点</b>。
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
+    <strong>📌 证据：</strong>度分布呈现<b>近似正态分布</b>特征：均值 {avg_deg:.1f}、中位数 {med_deg:.0f}，
+    均值/中位数比仅为 {avg_deg/med_deg:.2f}，表明分布高度对称。这一特征与典型社交网络的幂律分布不同——
+    EngageTown 的社交连接呈现<b>高度均质化</b>，大多数居民维持相似规模的社交圈。
+    度最高的 5 位居民（ID：{top_ids}）虽然连接数最多，但优势并不悬殊。
+    这种均质化结构可能反映了社区的<b>社交平等性</b>——没有少数"超级连接者"垄断社交资源。
+    从信息传播角度看，均质网络具有较好的<b>鲁棒性</b>：任一节点的移除对全局连通性影响有限，
+    但也意味着信息扩散速度可能较慢（缺乏枢纽加速）。
     </div>
     """, unsafe_allow_html=True)
 
@@ -443,11 +444,11 @@ elif page.startswith("🤝"):
 
     comm_fig = make_q2_community_sizes(net_metrics)
     if comm_fig:
-        st.plotly_chart(comm_fig, width='stretch')
+        st.plotly_chart(comm_fig, use_container_width=True)
 
     mod = net_metrics.get('modularity', 0)
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
     <strong>📌 证据：</strong>Louvain 社区检测算法识别出 <b>{net_metrics.get('num_communities', 'N/A')} 个社交社区</b>，
     模块度达 <b>{mod:.4f}</b>。在社交网络分析中，模块度超过 0.3 即被视为具有显著社区结构；
     {mod:.4f} 的数值表明 EngageTown 的社交网络<b>高度模块化</b>——同一社区内部联系紧密，
@@ -468,16 +469,16 @@ elif page.startswith("🤝"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_clustering_hist(net_metrics), width='stretch')
+        st.plotly_chart(make_q2_clustering_hist(net_metrics), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q2_betweenness_hist(net_metrics), width='stretch')
+        st.plotly_chart(make_q2_betweenness_hist(net_metrics), use_container_width=True)
 
     avg_clust = net_metrics["clustering"]["clustering_coefficient"].mean()
     clust_ratio = avg_clust / net_metrics['density']
     top_betweenness = net_metrics["betweenness"].nlargest(3, "betweenness_centrality")
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #B279A2; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #B279A2; margin:12px 0;">
     <strong>📌 证据：</strong>平均聚类系数为 <b>{avg_clust:.4f}</b>，是网络密度（{net_metrics['density']:.4f}）的
     <b>{clust_ratio:.0f} 倍</b>。这一比值揭示了一个关键的社会学现象：如果 A 与 B、C 分别为朋友，
     那么 B 与 C 之间也极有可能存在连接——即<b>"三元闭包"（Triadic Closure）</b>倾向强烈。
@@ -494,14 +495,14 @@ elif page.startswith("🤝"):
     # ================================================================
     # Pattern 4: Venue Check-in
     # ================================================================
-    st.markdown("## 模式四：场所类型偏好——餐饮场所主导社交空间")
+    st.markdown("## 模式四：场所类型偏好——餐饮场所为核心社交载体")
     st.markdown("*签到行为的场所类型分布及热门场所集中度*")
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_venue_types(vc), width='stretch')
+        st.plotly_chart(make_q2_venue_types(vc), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q2_top_venues(vc), width='stretch')
+        st.plotly_chart(make_q2_top_venues(vc), use_container_width=True)
 
     venue_type_counts = vc.groupby("venueType")["checkins"].sum().sort_values(ascending=False)
     top_type = venue_type_counts.index[0]
@@ -509,11 +510,21 @@ elif page.startswith("🤝"):
     top3_venues = vc.nlargest(3, "checkins")
     top3_pct = top3_venues["checkins"].sum() / vc["checkins"].sum() * 100
 
+    # Calculate percentages for each venue type
+    total_checkins = venue_type_counts.sum()
+    workplace_pct = venue_type_counts.get("Workplace", 0) / total_checkins * 100
+    restaurant_pct = venue_type_counts.get("Restaurant", 0) / total_checkins * 100
+    pub_pct = venue_type_counts.get("Pub", 0) / total_checkins * 100
+    food_social_pct = restaurant_pct + pub_pct
+
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #F58518; margin:12px 0;">
-    <strong>📌 证据：</strong>"<b>{top_type}</b>"类场所占总签到量的 <b>{top_type_pct:.0f}%</b>，在所有场所类型中
-    占据绝对主导地位。签到量前三的场所合计占比 <b>{top3_pct:.0f}%</b>，表明存在少数"热门场所"
-    承担了不成比例的社交活动负载。这一集中模式揭示了 EngageTown 社交生态的两个特征：
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #F58518; margin:12px 0;">
+    <strong>📌 证据：</strong>签到量数据显示场所类型分布为："<b>{top_type}</b>"类场所占 <b>{top_type_pct:.0f}%</b>，
+    其次是 Workplace（{workplace_pct:.0f}%）和 Restaurant（{restaurant_pct:.0f}%）。
+    <b>餐饮场所（Restaurant + Pub）合计占比约 {food_social_pct:.0f}%</b>，
+    虽然不是单一最大类别，但作为社交功能场所类型，它们构成了居民社交活动的核心载体。
+    签到量前三的场所合计占比 <b>{top3_pct:.0f}%</b>，表明存在少数"热门场所"
+    承担了不成比例的社交活动负载。这一分布模式揭示了 EngageTown 社交生态的两个特征：
     （1）<b>餐饮场所是社区社交的核心载体</b>——居民的面对面社交主要围绕共同进餐/饮酒展开；
     （2）热门场所构成了<b>社交活动的引力中心</b>——少数地点成为事实上的社区聚集点。
     从城市设计角度看，这些热门场所的选址与容量对社区社交健康具有不成比例的影响。
@@ -530,8 +541,8 @@ elif page.startswith("🤝"):
     st.markdown("## 模式五：昼夜活动节律——午后/傍晚为社交高峰")
     st.markdown("*24 小时活动强度曲线及活动模式的时段分布*")
 
-    st.plotly_chart(make_q2_hourly_activity(ha), width='stretch')
-    st.plotly_chart(make_q2_mode_area(ha, mode_cols), width='stretch')
+    st.plotly_chart(make_q2_hourly_activity(ha, mode_cols), use_container_width=True)
+    st.plotly_chart(make_q2_mode_area(ha, mode_cols), use_container_width=True)
 
     hourly_total = ha.groupby("hour_num")["total_mode"].sum().reset_index()
     peak_hour = int(hourly_total.loc[hourly_total["total_mode"].idxmax(), "hour_num"])
@@ -540,13 +551,15 @@ elif page.startswith("🤝"):
     peak_to_trough = hourly_total["total_mode"].max() / hourly_total["total_mode"].min()
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #72B7B2; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #72B7B2; margin:12px 0;">
     <strong>📌 证据：</strong>活动曲线呈现清晰的<b>单峰昼夜节律</b>：凌晨 {trough_hour}:00 为全日最低谷，
     此后逐步攀升，于 <b>{peak_hour}:00 达到峰值</b>，峰谷比达 {peak_to_trough:.0f}:1。
-    活动模式（mode）的时段构成揭示了节律背后的行为逻辑——"在家"与"工作"模式主导日间时段，
-    "休闲娱乐"与"餐饮"模式在午后至傍晚占据更大份额，夜间则回归"在家"模式。
-    这一节律与标准工作-生活二分结构高度吻合，其社会学含义是：<b>居民的社交活动嵌入了
-    工作日的"后工作时段"</b>，社交并非独立于工作-生活节律之外，而是作为其有机组成部分。
+    活动模式的构成揭示了节律背后的行为逻辑：<b>"在家"模式占绝对主导（约 60.8%）</b>，
+    其次是"工作"模式（约 23.7%），"休闲娱乐"与"餐饮"模式合计仅占约 6.3%。
+    这一分布表明居民的日常活动以居家和工作为主，社交/休闲活动在时间分配上相对有限。
+    尽管占比不高，社交/休闲活动仍呈现明显的<b>午后至傍晚集中</b>特征，
+    夜间则回归"在家"模式。这一节律与标准工作-生活结构一致，
+    社交活动主要嵌入<b>工作日的"后工作时段"</b>。
     </div>
     """, unsafe_allow_html=True)
 
@@ -557,15 +570,15 @@ elif page.startswith("🤝"):
     st.markdown("## 模式五（续）：工作日与周末的行为分化")
     st.markdown("*周末社交峰值后移、休闲比例上升——工作-生活二分节律的强化证据*")
 
-    st.plotly_chart(make_q2_weekday_weekend(ha), width='stretch')
-    st.plotly_chart(make_q2_weekday_weekend_modes(ha, mode_cols), width='stretch')
+    st.plotly_chart(make_q2_weekday_weekend(ha, mode_cols), use_container_width=True)
+    st.plotly_chart(make_q2_weekday_weekend_modes(ha, mode_cols), use_container_width=True)
 
     peak_diff = int(weekend["we_peak"]) - int(weekend["wd_peak"])
     work_drop = weekend['wd_work_pct'] - weekend['we_work_pct']
     rec_rise = weekend['we_rec_pct'] - weekend['wd_rec_pct']
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #E45756; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #E45756; margin:12px 0;">
     <strong>📌 证据——周末社交迁移：</strong><br>
     • <b>峰值时移：</b>活动峰值从工作日的 {int(weekend['wd_peak'])}:00 后移至周末的
       {int(weekend['we_peak'])}:00（Δ = {peak_diff:+d} 小时），与较晚的起床时间及社交导向日程一致<br>
@@ -591,12 +604,12 @@ elif page.startswith("🤝"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_age_social(cross), width='stretch')
+        st.plotly_chart(make_q2_age_social(cross), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q2_edu_social(cross), width='stretch')
+        st.plotly_chart(make_q2_edu_social(cross), use_container_width=True)
 
     st.markdown("""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #2E4057; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #2E4057; margin:12px 0;">
     <strong>📌 证据：</strong>社交连接度（以加权度衡量）在年龄维度上呈现<b>倒 U 型分布</b>——
     青年与壮年群体（约 25–45 岁）社交活动最为活跃，此后随年龄增长逐步下降。这一模式
     与生命历程理论中的社交生命周期假说一致：社交网络在职业生涯早期扩展，中年后因家庭
@@ -615,7 +628,7 @@ elif page.startswith("🤝"):
     st.markdown("## 模式七：关键影响者——少数桥接个体的结构性作用")
     st.markdown("*介数中心性识别跨社区信息通道的关键节点*")
 
-    st.plotly_chart(make_q2_bridge_individuals(net_metrics), width='stretch')
+    st.plotly_chart(make_q2_bridge_individuals(net_metrics), use_container_width=True)
 
     bridge_df = net_metrics["betweenness"].nlargest(10, "betweenness_centrality")
     top1_bet = bridge_df.iloc[0]
@@ -624,7 +637,7 @@ elif page.startswith("🤝"):
     top10_pct = top10_sum / total_bet * 100
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #E45756; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #E45756; margin:12px 0;">
     <strong>📌 证据：</strong>介数中心性分布高度集中——前 10 位个体合计占据了全网 <b>{top10_pct:.1f}%</b>
     的最短路径，其中最高者（ID {int(top1_bet['participantId'])}）独占总介数的显著份额。
     这些"桥接个体"是<b>跨社区信息流通的结构性枢纽</b>：他们的社交连接跨越了社区检测
@@ -644,7 +657,7 @@ elif page.startswith("🤝"):
     st.markdown("## 模式八：关系强度的异质性——弱连接主导，强连接稀缺")
     st.markdown("*边权重分布揭示社交投资的不均等分配*")
 
-    st.plotly_chart(make_q2_edge_weights(sn), width='stretch')
+    st.plotly_chart(make_q2_edge_weights(sn), use_container_width=True)
 
     mean_w = sn["weight"].mean()
     median_w = sn["weight"].median()
@@ -655,7 +668,7 @@ elif page.startswith("🤝"):
     strong_count = (sn["weight"] >= 3 * median_w).sum()
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #F58518; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #F58518; margin:12px 0;">
     <strong>📌 证据：</strong>边权重（互动频率）分布呈<b>典型右偏态</b>：均值 {mean_w:.1f} 远高于中位数
     {median_w:.0f}（均值/中位数比 {weak_strong_ratio:.1f}），绝大多数社交关系的互动频率处于
     低位——这是<b>"邓巴数"（Dunbar's Number）理论的量化印证</b>：个体维持亲密关系（高频互动）
@@ -678,12 +691,12 @@ elif page.startswith("🤝"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_travel_purpose(tp), width='stretch')
+        st.plotly_chart(make_q2_travel_purpose(tp), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q2_travel_spending(tp), width='stretch')
+        st.plotly_chart(make_q2_travel_spending(tp), use_container_width=True)
 
     st.markdown("""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
     <strong>📌 证据：</strong>社交/休闲类出行在<b>频次与消费金额两个维度均占据首位</b>，
     构成居民出行的主要驱动力。通勤（工作相关出行）退居次要位置——这一排序与典型
     大城市通勤主导的出行结构形成反差，暗示两种可能：（1）<b>居民职住接近</b>——
@@ -705,12 +718,12 @@ elif page.startswith("🤝"):
 
     map_fig = make_venue_map(base_map, data)
     if map_fig:
-        st.plotly_chart(map_fig, width='stretch')
+        st.plotly_chart(map_fig, use_container_width=True)
     else:
         st.info("地图不可用（缺少 BaseMap.png 底图文件）")
 
     st.markdown("""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
     <strong>📌 证据：</strong>场所空间分布呈现<b>非随机集聚格局</b>。酒吧与餐厅表现出显著的
     空间共址倾向——二者倾向于毗邻分布，形成若干可辨识的<b>"社交-商业微中心"</b>。
     这种共址模式在零售地理学中被称为"集聚经济"（Agglomeration Economy）：
@@ -729,12 +742,12 @@ elif page.startswith("🤝"):
     st.markdown("---")
     st.markdown("## Q2 总结：十项社交模式及其系统关联")
     st.markdown(f"""
-    <div style="background:linear-gradient(135deg, #f8f9fb 0%, #eef1f5 100%);
-    padding:20px 24px; border-radius:10px; border:1px solid #d0d5dd; margin-top:8px;">
+    <div style="background:rgba(128,128,128,0.06);
+    padding:20px 24px; border-radius:10px; border:1px solid rgba(128,128,128,0.15); margin-top:8px;">
 
     <p style="font-size:1.05em; line-height:1.9; text-align:justify;">
     EngageTown 的社交生态呈现出一幅<b>高度结构化、多维度关联的社会网络图景</b>。从网络拓扑来看，
-    度分布呈幂律特征（模式一）、社区模块度高达 {mod:.4f}（模式二）、聚类系数远超随机网络
+    度分布呈近似正态（模式一）、社区模块度高达 {mod:.4f}（模式二）、聚类系数远超随机网络
     （模式三），三者共同指向一个<b>紧密且模块化的社交结构</b>——信息在社区内部高效流动，
     但跨社区传播依赖少数桥接个体（模式七）。从行为层面来看，社交活动嵌入清晰的昼夜节律
     （模式五），以餐饮场所为核心空间载体（模式四），并由社交/休闲出行驱动（模式九）。
@@ -744,7 +757,7 @@ elif page.startswith("🤝"):
     <hr style="border-color:#d0d5dd; margin:16px 0;">
 
     <table style="width:100%; font-size:0.93em; border-collapse:collapse;">
-    <tr style="background:#e8ecf1;">
+    <tr style="background:rgba(128,128,128,0.15);">
         <td style="padding:8px 12px; width:5%;"><b>#</b></td>
         <td style="padding:8px 12px; width:25%;"><b>模式</b></td>
         <td style="padding:8px 12px; width:35%;"><b>核心证据</b></td>
@@ -752,11 +765,11 @@ elif page.startswith("🤝"):
     </tr>
     <tr>
         <td style="padding:8px 12px;">1</td>
-        <td style="padding:8px 12px;">度分布——重尾（幂律）</td>
-        <td style="padding:8px 12px;">均值 {avg_deg:.1f}，中位数 {med_deg:.0f}，最大值 {max_deg}；双对数线性衰减</td>
-        <td style="padding:8px 12px;">无标度网络特征，少数枢纽承担信息扩散核心功能</td>
+        <td style="padding:8px 12px;">度分布——近似正态</td>
+        <td style="padding:8px 12px;">均值 {avg_deg:.1f}，中位数 {med_deg:.0f}，均值/中位数比 {avg_deg/med_deg:.2f}</td>
+        <td style="padding:8px 12px;">社交连接高度均质化，无超级连接者垄断</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">2</td>
         <td style="padding:8px 12px;">强社区结构</td>
         <td style="padding:8px 12px;">模块度 {mod:.4f}，检测到 {net_metrics.get('num_communities', 'N/A')} 个社区</td>
@@ -768,10 +781,10 @@ elif page.startswith("🤝"):
         <td style="padding:8px 12px;">聚类系数 {avg_clust:.4f}（为密度 {net_metrics['density']:.4f} 的 {clust_ratio:.0f} 倍）</td>
         <td style="padding:8px 12px;">三元闭包倾向强烈，信任积累与社会资本形成环境有利</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">4</td>
-        <td style="padding:8px 12px;">餐饮场所主导社交空间</td>
-        <td style="padding:8px 12px;">"{top_type}" 占签到量 {top_type_pct:.0f}%，前三场所占 {top3_pct:.0f}%</td>
+        <td style="padding:8px 12px;">餐饮场所为核心社交载体</td>
+        <td style="padding:8px 12px;">餐饮（Restaurant+Pub）合计 {food_social_pct:.0f}%，前三场所占 {top3_pct:.0f}%</td>
         <td style="padding:8px 12px;">餐饮场所是社区社交核心载体，少数场所为引力中心</td>
     </tr>
     <tr>
@@ -780,7 +793,7 @@ elif page.startswith("🤝"):
         <td style="padding:8px 12px;">峰值 {peak_hour}:00；周末峰值后移 {peak_diff:+d}h，休闲占比 +{rec_rise:.1f}pp</td>
         <td style="padding:8px 12px;">社交嵌入工作-生活节律，周末时间再分配至社交/休闲</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">6</td>
         <td style="padding:8px 12px;">人口特征调节社交参与</td>
         <td style="padding:8px 12px;">年龄呈倒 U 型；教育正向但效应量有限</td>
@@ -792,7 +805,7 @@ elif page.startswith("🤝"):
         <td style="padding:8px 12px;">前 10 个体占全网介数 {top10_pct:.1f}%</td>
         <td style="padding:8px 12px;">信息传播枢纽，网络鲁棒性的结构性关键点</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">8</td>
         <td style="padding:8px 12px;">关系强度异质性</td>
         <td style="padding:8px 12px;">均值/中位数比 {weak_strong_ratio:.1f}；弱连接 ~{weak_count/len(sn)*100:.0f}%</td>
@@ -804,7 +817,7 @@ elif page.startswith("🤝"):
         <td style="padding:8px 12px;">社交出行频次与消费均居首位</td>
         <td style="padding:8px 12px;">职住接近 + 社交偏好 → 非通勤出行主导</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">10</td>
         <td style="padding:8px 12px;">社交场所空间集聚</td>
         <td style="padding:8px 12px;">酒吧-餐厅共址集聚，学校空间分散</td>
@@ -852,10 +865,10 @@ elif page.startswith("🏭"):
     st.markdown("## 一、小微雇主主导——不存在大型企业")
     st.markdown("*雇主规模分布及其对经济结构的定性含义*")
 
-    st.plotly_chart(make_q3_employer_size(js), width='stretch')
+    st.plotly_chart(make_q3_employer_size(js), use_container_width=True)
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
     <strong>📌 核心发现——主导产业判断：小型服务企业。</strong><br>
     {len(js)} 家雇主的雇员规模集中于 <b>{econ['min_e']}–{econ['max_e']} 人</b>（均值
     {js['employee_count'].mean():.1f}，中位数 {js['employee_count'].median():.0f}），
@@ -879,9 +892,9 @@ elif page.startswith("🏭"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_financial_flow(fin), width='stretch')
+        st.plotly_chart(make_q3_financial_flow(fin), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q3_expense_pie(fin), width='stretch')
+        st.plotly_chart(make_q3_expense_pie(fin), use_container_width=True)
 
     shelter_pct = econ['total_shelter'] / econ['total_spending'] * 100
     rec_pct = econ['total_recreation'] / econ['total_spending'] * 100
@@ -891,7 +904,7 @@ elif page.startswith("🏭"):
     surplus_pct = net_surplus / econ['total_wage'] * 100
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #F58518; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #F58518; margin:12px 0;">
     <strong>📌 分析：</strong>经济体的收入端高度单一化——<b>工资为唯一收入来源</b>（总额
     ${econ['total_wage']:,.0f}），数据中未见投资收益、经营性利润或政府转移支付等其他收入形式，
     暗示该城镇不具备显著的资本积累或再分配体系。支出端呈三足鼎立格局：<b>住房</b>
@@ -917,15 +930,15 @@ elif page.startswith("🏭"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_wage_hist(js), width='stretch')
+        st.plotly_chart(make_q3_wage_hist(js), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q3_wage_box(js), width='stretch')
+        st.plotly_chart(make_q3_wage_box(js), use_container_width=True)
 
     wage_range = js["avg_hourly_rate"].max() - js["avg_hourly_rate"].min()
     wage_cv = js["avg_hourly_rate"].std() / js["avg_hourly_rate"].mean()
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
     <strong>📌 分析：</strong>小时工资区间为 <b>${js['avg_hourly_rate'].min():.2f}–${js['avg_hourly_rate'].max():.2f}</b>
     （极差 ${wage_range:.2f}），均值 ${js['avg_hourly_rate'].mean():.2f}，中位数
     ${js['avg_hourly_rate'].median():.2f}，变异系数 {wage_cv:.2f}。分布形态接近正态——
@@ -949,7 +962,7 @@ elif page.startswith("🏭"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_building_types(bt), width='stretch')
+        st.plotly_chart(make_q3_building_types(bt), use_container_width=True)
     with col_r:
         comp_data = pd.DataFrame({
             "Metric": ["住宅建筑", "商业建筑", "注册雇主\n（在商业建筑内）", "未占用\n商业建筑"],
@@ -960,14 +973,14 @@ elif page.startswith("🏭"):
                           title=f"商业空间利用率（{econ['commercial']} 栋商业建筑，{len(js)} 家雇主）",
                           color="Count", color_continuous_scale="Viridis", text="Count")
         fig_comp.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig_comp, width='stretch')
+        st.plotly_chart(fig_comp, use_container_width=True)
 
     vacancy = max(0, econ['commercial'] - len(js))
     res_pct = econ['residential'] / bt['count'].sum() * 100
     com_pct = econ['commercial'] / bt['count'].sum() * 100
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #72B7B2; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #72B7B2; margin:12px 0;">
     <strong>📌 分析：</strong>建筑存量近乎均衡：{econ['residential']} 栋住宅
     （{res_pct:.0f}%）、{econ['commercial']} 栋商业建筑（{com_pct:.0f}%）、{econ['schools_n']} 所学校。
     住宅-商业比例接近 1:1，暗示该城镇可能采用<b>混合用途（mixed-use）的社区规划理念</b>——
@@ -996,7 +1009,7 @@ elif page.startswith("🏭"):
                          color="transaction_count", color_continuous_scale="Blues",
                          text=fin_plot["transaction_count"].apply(lambda x: f"{x:,}"))
         fig_txn.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig_txn, width='stretch')
+        st.plotly_chart(fig_txn, use_container_width=True)
     with col_r:
         fig_avg = px.bar(fin_plot.sort_values("avg_amount", key=abs), y="category",
                          x=fin_plot["avg_amount"].abs(),
@@ -1004,7 +1017,7 @@ elif page.startswith("🏭"):
                          color=fin_plot["avg_amount"].abs(), color_continuous_scale="Reds",
                          text=fin_plot["avg_amount"].apply(lambda x: f"${abs(x):,.0f}"))
         fig_avg.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig_avg, width='stretch')
+        st.plotly_chart(fig_avg, use_container_width=True)
 
     food_avg = abs(fin[fin["category"] == "Food"]["avg_amount"].iloc[0])
     shelter_avg = abs(fin[fin["category"] == "Shelter"]["avg_amount"].iloc[0])
@@ -1012,13 +1025,13 @@ elif page.startswith("🏭"):
     shelter_txn_count = fin[fin["category"] == "Shelter"]["transaction_count"].iloc[0]
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #B279A2; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #B279A2; margin:12px 0;">
     <strong>📌 分析：</strong>消费呈现清晰的<b>双模式结构</b>。食品类交易呈<b>高频低额</b>特征——
     {food_txn_count:,} 笔交易，均价约 ${food_avg:.0f}/笔，对应日常高频购买行为（外出就餐
     或少量多次采购）。住房类交易则呈<b>低频高额</b>特征——仅 {shelter_txn_count:,} 笔交易，
     均价约 ${shelter_avg:.0f}/笔，对应月度房租/抵押贷款支付模式。<br><br>
     这一频率-金额的二分结构是标准消费者经济的典型特征，排除了数据异常的可能。
-    食品交易笔数（{food_txn_count:,}）远超其他类别，结合 Q2 中餐饮场所主导签到的发现，
+    食品交易笔数（{food_txn_count:,}）远超其他类别，结合 Q2 中餐饮场所作为核心社交载体的发现，
     提供了居民<b>"高频外出就餐"</b>而非"低频批量采购"消费行为模式的互补证据。
     从经济结构角度看，高食品交易频率支撑了餐饮服务业的需求端基础，
     为后文（发现六）中餐饮行业在可辨识雇主中占比最高提供了需求侧解释。
@@ -1032,8 +1045,8 @@ elif page.startswith("🏭"):
     st.markdown("## 六、产业可辨识度——服务业可部分识别，但近九成无法细分")
     st.markdown("*基于建筑共址推断的行业分类及工资差异分析*")
 
-    st.plotly_chart(make_q3_industry_pie(js_with_ind, js), width='stretch')
-    st.plotly_chart(make_q3_industry_wage(js_with_ind), width='stretch')
+    st.plotly_chart(make_q3_industry_pie(js_with_ind, js), use_container_width=True)
+    st.plotly_chart(make_q3_industry_wage(js_with_ind), use_container_width=True)
 
     gen_count = ind_counts.get("General Commercial", 0)
     rest_count = ind_counts.get("Restaurant/Food Service", 0)
@@ -1046,7 +1059,7 @@ elif page.startswith("🏭"):
     gen_avg = js_with_ind[js_with_ind["industry"] == "General Commercial"]["avg_hourly_rate"].mean()
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
     <strong>📌 核心发现——产业可辨识度有限：</strong><br>
     通过雇主建筑地址与已知社交场所（餐厅、酒吧、学校）的空间共址分析，仅能识别出
     <b>{classifiable} 家雇主（{pct_classifiable:.0f}%）</b>的具体行业归属——其中
@@ -1071,8 +1084,8 @@ elif page.startswith("🏭"):
     st.markdown("---")
     st.markdown("## Q3 总结：主导产业基础的系统画像")
     st.markdown(f"""
-    <div style="background:linear-gradient(135deg, #f8f9fb 0%, #eef1f5 100%);
-    padding:20px 24px; border-radius:10px; border:1px solid #d0d5dd; margin-top:8px;">
+    <div style="background:rgba(128,128,128,0.06);
+    padding:20px 24px; border-radius:10px; border:1px solid rgba(128,128,128,0.15); margin-top:8px;">
 
     <p style="font-size:1.05em; line-height:1.9; text-align:justify;">
     <b>EngageTown 的经济基础可概括为"去中心化的小型服务经济体"</b>——由 {len(js)} 家小微雇主
@@ -1089,7 +1102,7 @@ elif page.startswith("🏭"):
     <hr style="border-color:#d0d5dd; margin:16px 0;">
 
     <table style="width:100%; font-size:0.93em; border-collapse:collapse;">
-    <tr style="background:#e8ecf1;">
+    <tr style="background:rgba(128,128,128,0.15);">
         <td style="padding:8px 12px; width:20%;"><b>维度</b></td>
         <td style="padding:8px 12px; width:40%;"><b>核心发现</b></td>
         <td style="padding:8px 12px; width:40%;"><b>经济含义</b></td>
@@ -1099,7 +1112,7 @@ elif page.startswith("🏭"):
         <td style="padding:8px 12px;">{len(js)} 家雇主，{econ['min_e']}–{econ['max_e']} 人/家，中位数 {js['employee_count'].median():.0f}</td>
         <td style="padding:8px 12px;">小微雇主主导，无大企业——本地化服务经济</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">💰 收入结构</td>
         <td style="padding:8px 12px;">工资 ${econ['total_wage']:,.0f}，唯一收入来源</td>
         <td style="padding:8px 12px;">无资本收入/转移支付——纯劳动收入经济体</td>
@@ -1109,7 +1122,7 @@ elif page.startswith("🏭"):
         <td style="padding:8px 12px;">住房 {shelter_pct:.0f}% | 休闲 {rec_pct:.0f}% | 食品 {food_pct:.0f}%</td>
         <td style="padding:8px 12px;">休闲≈食品——社交消费文化，非典型支出结构</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">💵 工资分布</td>
         <td style="padding:8px 12px;">${js['avg_hourly_rate'].min():.2f}–${js['avg_hourly_rate'].max():.2f}/时，均值 ${js['avg_hourly_rate'].mean():.2f}，CV={wage_cv:.2f}</td>
         <td style="padding:8px 12px;">近正态分布，雇主规模与工资脱钩</td>
@@ -1119,7 +1132,7 @@ elif page.startswith("🏭"):
         <td style="padding:8px 12px;">{econ['residential']} 住宅 + {econ['commercial']} 商业 + {econ['schools_n']} 学校；{vacancy} 栋商业余量</td>
         <td style="padding:8px 12px;">混合用途规划，存在物理扩张空间</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">🏷️ 产业分类</td>
         <td style="padding:8px 12px;">{classifiable}/{len(js)} 可识别（{pct_classifiable:.0f}%）；{rest_count} 餐饮，{pub_count} 酒吧</td>
         <td style="padding:8px 12px;">无单一主导产业——居民服务生态系统</td>
@@ -1179,7 +1192,7 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns([3, 2])
     with col_l:
-        st.plotly_chart(make_q1_age_histogram(ps), width='stretch')
+        st.plotly_chart(make_q1_age_histogram(ps), use_container_width=True)
     with col_r:
         age_bins = [0, 18, 30, 45, 60, 100]
         age_labels = ["0–17（未成年）", "18–29（青年）", "30–44（壮年）", "45–59（中年）", "60+（老年）"]
@@ -1190,7 +1203,7 @@ elif page.startswith("📋"):
             st.metric(label, f"{count} 人", delta=f"{count/len(ps)*100:.1f}%")
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #2E4057; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #2E4057; margin:12px 0;">
     <strong>📌 分析：</strong>EngageTown 居民年龄呈典型的<b>劳动力主导型分布</b>，均值 {ps['age'].mean():.1f} 岁，中位数 {ps['age'].median():.0f} 岁。
     18–59 岁工作年龄段占比超过七成，构成城市经济活动的主体力量。年龄分布呈现轻微右偏态，老年人口（60+）相对较少，
     表明该城市为一个<b>以中青年为核心的经济活跃社区</b>，抚养比处于健康区间。家庭结构方面，户均规模仅
@@ -1210,17 +1223,17 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q1_education_bar(ps), width='stretch')
+        st.plotly_chart(make_q1_education_bar(ps), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q1_edu_balance(ps), width='stretch')
+        st.plotly_chart(make_q1_edu_balance(ps), use_container_width=True)
 
     edu_dist = ps["educationLevel"].value_counts()
     top_edu = edu_dist.index[0]
     bachelors_pct = edu_dist.get("Bachelors", 0) / len(ps) * 100
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
-    <strong>📌 分析：</strong>居民受教育程度集中于"<b>高中或大学肄业</b>"（{edu_dist.get('High School or College', 0)} 人，
-    {edu_dist.get('High School or College', 0)/len(ps)*100:.1f}%）与"<b>学士</b>"（{edu_dist.get('Bachelors', 0)} 人，
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
+    <strong>📌 分析：</strong>居民受教育程度集中于"<b>高中或大学肄业</b>"（{edu_dist.get('HighSchoolOrCollege', 0)} 人，
+    {edu_dist.get('HighSchoolOrCollege', 0)/len(ps)*100:.1f}%）与"<b>学士</b>"（{edu_dist.get('Bachelors', 0)} 人，
     {bachelors_pct:.1f}%）两个层级。教育水平与财务状况呈正相关趋势：学士及以上学历者的平均可用余额显著高于
     低学历群体，反映了<b>人力资本对经济回报的正向影响</b>。值得注意的是，"高中或大学肄业"群体规模最大，
     但内部经济差异也最为显著，可能对应不同职业路径的收入分化。
@@ -1237,17 +1250,17 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_degree_distribution(net_metrics["degree"]), width='stretch')
+        st.plotly_chart(make_q2_degree_distribution(net_metrics["degree"]), use_container_width=True)
     with col_r:
         comm_fig = make_q2_community_sizes(net_metrics)
         if comm_fig:
-            st.plotly_chart(comm_fig, width='stretch')
+            st.plotly_chart(comm_fig, use_container_width=True)
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
     <strong>📌 分析：</strong>EngageTown 社交网络包含 <b>{net_metrics['num_nodes']:,} 个节点</b>、<b>{net_metrics['num_edges']:,} 条边</b>，
-    网络密度为 {net_metrics['density']:.4f}。度分布呈现典型的<b>重尾（幂律）特征</b>——少数居民拥有高连接度，
-    多数人保持中等社交圈规模，符合真实社会网络的结构规律。Louvain 社区检测识别出
+    网络密度为 {net_metrics['density']:.4f}。度分布呈<b>近似正态</b>特征——大多数居民维持相似规模的社交圈，
+    社交连接高度均质化，没有少数"超级连接者"垄断社交资源。Louvain 社区检测识别出
     <b>{net_metrics.get('num_communities', 'N/A')} 个社交社区</b>，模块度达 {net_metrics.get('modularity', 0):.4f}，
     表明社区间边界清晰，居民的社会交往主要集中于所属群体内部。平均聚类系数
     {net_metrics['avg_clustering']:.4f} 远高于网络密度，印证了<b>"朋友的朋友亦是朋友"</b>的紧密社交圈特征。
@@ -1262,12 +1275,12 @@ elif page.startswith("📋"):
     st.markdown("## 四、社交活动的时间与空间模式")
     st.markdown("*居民行为节律——何时、何地、以何种方式社交*")
 
-    st.plotly_chart(make_q2_hourly_activity(ha), width='stretch')
+    st.plotly_chart(make_q2_hourly_activity(ha, mode_cols), use_container_width=True)
 
     hourly_total = ha.groupby("hour_num")["total_mode"].sum().reset_index()
     peak_hour = int(hourly_total.loc[hourly_total["total_mode"].idxmax(), "hour_num"])
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #72B7B2; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #72B7B2; margin:12px 0;">
     <strong>📌 分析：</strong>居民活动呈现清晰的<b>昼夜节律</b>：凌晨 0–6 时为活动低谷（睡眠时段），
     上午 7–11 时逐步攀升（通勤与工作启动），午后至傍晚达到峰值（<b>高峰时段 {peak_hour}:00</b>），
     夜间平缓回落。工作日与周末模式存在结构性差异：周末活动峰值较工作日推迟约
@@ -1281,14 +1294,14 @@ elif page.startswith("📋"):
     # Venue map
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q4_mini_venue(vc), width='stretch')
+        st.plotly_chart(make_q4_mini_venue(vc), use_container_width=True)
     with col_r:
         total_checkins = vc["checkins"].sum()
         social_checkins = vc[vc["venueType"].isin(["Restaurant", "Pub"])]["checkins"].sum()
         social_pct = social_checkins / total_checkins * 100
         top_venue = vc.nlargest(1, "checkins")
         st.markdown(f"""
-        <div style="background:#f5f6fa; padding:14px 16px; border-radius:8px; border-left:4px solid #F58518; margin:6px 0;">
+        <div style="background:rgba(128,128,128,0.1); padding:14px 16px; border-radius:8px; border-left:4px solid #F58518; margin:6px 0;">
         <strong>🏬 场所使用总览</strong><br><br>
         • <b>总签到量：</b>{total_checkins:,} 人次<br>
         • <b>餐饮社交场所：</b>{social_checkins:,} 人次（{social_pct:.0f}%）<br>
@@ -1311,9 +1324,9 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_financial_flow(fin), width='stretch')
+        st.plotly_chart(make_q3_financial_flow(fin), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q4_mini_financial(fin), width='stretch')
+        st.plotly_chart(make_q4_mini_financial(fin), use_container_width=True)
 
     shelter_amt = abs(fin[fin['category'] == 'Shelter']['total_amount'].iloc[0])
     rec_amt = abs(fin[fin['category'] == 'Recreation']['total_amount'].iloc[0])
@@ -1322,7 +1335,7 @@ elif page.startswith("📋"):
     surplus_pct = net_surplus / econ['total_wage'] * 100
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #E45756; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #E45756; margin:12px 0;">
     <strong>📌 分析：</strong>EngageTown 经济体量以<b>年工资总额 ${econ['total_wage']:,.0f}</b> 衡量，
     工资为唯一收入来源，表明该城市不具备显著的投资收益或转移支付体系。支出端呈现三足鼎立格局：<b>住房</b>
     ${shelter_amt:,.0f}（{shelter_amt/econ['total_spending']*100:.0f}%）、<b>休闲</b>
@@ -1343,23 +1356,24 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_employer_size(js), width='stretch')
+        st.plotly_chart(make_q3_employer_size(js), use_container_width=True)
     with col_r:
-        st.plotly_chart(make_q3_wage_box(js), width='stretch')
+        st.plotly_chart(make_q3_wage_box(js), use_container_width=True)
 
     gen_count = ind_counts.get("General Commercial", 0)
     rest_count = ind_counts.get("Restaurant/Food Service", 0)
     pub_count = ind_counts.get("Pub/Hospitality", 0)
-    classifiable = rest_count + pub_count
+    fb_count = ind_counts.get("Food & Beverage", 0)
+    classifiable = rest_count + pub_count + fb_count
 
     st.markdown(f"""
-    <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #B279A2; margin:12px 0;">
+    <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #B279A2; margin:12px 0;">
     <strong>📌 分析——主导产业判断：</strong>EngageTown 的经济形态可概括为<b>"去中心化的小型服务经济体"</b>。
     {len(js)} 家雇主均为小微实体（规模 {econ['min_e']}–{econ['max_e']} 人，中位数
     {js['employee_count'].median():.0f} 人），<b>不存在大型企业或制造业基地</b>。小时工资分布呈近正态
     （均值 ${js['avg_hourly_rate'].mean():.2f}，中位数 ${js['avg_hourly_rate'].median():.2f}），
     极端高薪或低薪岗位罕见。仅有 <b>{classifiable} 家雇主（{classifiable/len(js)*100:.0f}%）</b>
-    可基于建筑共址推断具体行业（{rest_count} 家餐饮、{pub_count} 家酒吧），其余
+    可基于建筑共址推断具体行业（{rest_count} 家餐饮、{pub_count} 家酒吧、{fb_count} 家食品饮料），其余
     {gen_count} 家（{gen_count/len(js)*100:.0f}%）为无法进一步细分的"一般商业服务"。<br><br>
     <b>核心结论：</b>该城市<b>不存在单一主导产业</b>——经济基础由满足居民日常需求的小型零售、
     餐饮、服务和商业机构共同构成，属于典型的<b>居民社区导向型服务经济</b>，而非工业或公司城镇。
@@ -1377,17 +1391,17 @@ elif page.startswith("📋"):
     map_fig = make_venue_map(base_map, data)
     if map_fig:
         map_fig.update_layout(height=550)
-        st.plotly_chart(map_fig, width='stretch')
+        st.plotly_chart(map_fig, use_container_width=True)
     else:
         st.info("地图不可用（缺少 BaseMap.png 底图文件）")
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_building_types(bt), width='stretch')
+        st.plotly_chart(make_q3_building_types(bt), use_container_width=True)
     with col_r:
         vacancy = max(0, econ['commercial'] - len(js))
         st.markdown(f"""
-        <div style="background:#f5f6fa; padding:14px 16px; border-radius:8px; border-left:4px solid #2E4057; margin:6px 0;">
+        <div style="background:rgba(128,128,128,0.1); padding:14px 16px; border-radius:8px; border-left:4px solid #2E4057; margin:6px 0;">
         <strong>🏗️ 建筑功能构成</strong><br><br>
         • <b>住宅建筑：</b>{econ['residential']} 栋（{econ['residential']/bt['count'].sum()*100:.0f}%）<br>
         • <b>商业建筑：</b>{econ['commercial']} 栋（{econ['commercial']/bt['count'].sum()*100:.0f}%）<br>
@@ -1408,8 +1422,8 @@ elif page.startswith("📋"):
     st.markdown("## 总结：EngageTown 城市综合画像")
 
     st.markdown(f"""
-    <div style="background:linear-gradient(135deg, #f8f9fb 0%, #eef1f5 100%);
-    padding:20px 24px; border-radius:12px; border:1px solid #d0d5dd; margin-top:8px;">
+    <div style="background:rgba(128,128,128,0.06);
+    padding:20px 24px; border-radius:12px; border:1px solid rgba(128,128,128,0.15); margin-top:8px;">
 
     <p style="font-size:1.05em; line-height:1.9; text-align:justify;">
     <b>EngageTown</b> 是一座以 <b>{len(ps):,} 名中青年居民</b>为主体的中小规模社区，
@@ -1426,7 +1440,7 @@ elif page.startswith("📋"):
     <hr style="border-color:#d0d5dd; margin:16px 0;">
 
     <table style="width:100%; font-size:0.95em; border-collapse:collapse;">
-    <tr style="background:#e8ecf1;">
+    <tr style="background:rgba(128,128,128,0.15);">
         <td style="padding:8px 12px; width:25%;"><b>维度</b></td>
         <td style="padding:8px 12px; width:75%;"><b>关键数据</b></td>
     </tr>
@@ -1435,7 +1449,7 @@ elif page.startswith("📋"):
         <td style="padding:8px 12px;">{len(ps):,} 人 | 均值 {ps['age'].mean():.1f} 岁 |
         户均 {ps['householdSize'].mean():.1f} 人 | {ps['interestGroup'].nunique()} 个兴趣组（均匀分布）</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">🤝 社交</td>
         <td style="padding:8px 12px;">{net_metrics['num_edges']:,} 条关系 |
         {net_metrics.get('num_communities', 'N/A')} 个社区 |
@@ -1449,7 +1463,7 @@ elif page.startswith("📋"):
         时薪 ${js['avg_hourly_rate'].mean():.2f} |
         净盈余 ${net_surplus:,.0f}</td>
     </tr>
-    <tr style="background:#f5f6fa;">
+    <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">🗺️ 空间</td>
         <td style="padding:8px 12px;">{bt['count'].sum():,} 栋建筑 |
         {econ['residential']} 住宅 + {econ['commercial']} 商业 + {econ['schools_n']} 学校 |

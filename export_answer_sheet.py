@@ -318,10 +318,10 @@ q1_answer_text = q1_answer_text.replace("__WC_Q1__", str(q1_word_count))
 
 q2_images_html = (
     fig_block("chart_q2_01_degree_dist.png",
-        f"Fig 2.1: Degree distribution on log-log axes showing the heavy-tailed pattern "
-        f"characteristic of scale-free social networks. The roughly linear decay on log-log "
-        f"scale indicates a near power-law distribution — few individuals have very high "
-        f"connectivity while most maintain moderate social ties.")
+        f"Fig 2.1: Degree distribution on log-log axes showing an approximately normal pattern — "
+        f"most residents maintain similar social circle sizes, indicating high homogeneity in "
+        f"social connectivity. Unlike typical scale-free networks, there are no 'super-connectors' "
+        f"dominating the social landscape.")
     + fig_block("chart_q2_02_communities.png",
         f"Fig 2.2: Community size distribution from Louvain detection (modularity "
         f"Q={net_metrics.get('modularity', 0):.4f}). Communities range from small clusters "
@@ -333,9 +333,10 @@ q2_images_html = (
         f"({net_metrics['density']:.4f}), demonstrating the 'friends-of-friends-are-friends' "
         f"triadic closure pattern typical of tightly-knit real-world social networks.")
     + fig_block("chart_q2_04_venue_types.png",
-        f"Fig 2.4: Check-ins by venue type — Restaurant, Pub, and Apartment venues dominate "
-        f"social activity. Eating and drinking establishments account for the majority of "
-        f"social venue visits (see Fig 3.3 for the corresponding expense breakdown).")
+        f"Fig 2.4: Check-ins by venue type — Apartment venues have the highest check-ins "
+        f"(~37.6%), followed by Workplace (~24.2%) and Restaurant (~21.3%). Restaurant + Pub "
+        f"combined account for ~38.2% of check-ins, serving as the core social venues "
+        f"(see Fig 3.3 for the corresponding expense breakdown).")
     + fig_block("chart_q2_05_hourly_activity.png",
         f"Fig 2.5: Activity by hour of day showing a clear diurnal rhythm — low overnight, "
         f"rising through morning, peaking in late afternoon/evening (17:00–19:00). This "
@@ -395,13 +396,13 @@ q2_answer_text = f"""<p class=MsoNormal><b>2. Social Activities — Ten Signific
 
 <p class=MsoNormal>We analyzed {net_metrics['num_nodes']:,} residents ({net_metrics['num_edges']:,} edges) and venue/temporal data. Ten patterns emerged:</p>
 
-<p class=MsoNormal><b>Pattern 1: Heavy-Tailed Degree Distribution.</b> The weighted degree follows a near power-law distribution on log-log scale (Fig 2.1) — few individuals have very high connectivity while most maintain moderate connections — a hallmark of real social networks.</p>
+<p class=MsoNormal><b>Pattern 1: Approximately Normal Degree Distribution.</b> The weighted degree follows an approximately normal distribution (Fig 2.1) — most residents maintain similar social circle sizes, indicating high homogeneity in social connectivity. Unlike typical scale-free networks, there are no 'super-connectors' dominating the social landscape.</p>
 
 <p class=MsoNormal><b>Pattern 2: Strong Community Structure.</b> Louvain community detection identifies {net_metrics.get('num_communities', 'N/A')} distinct communities (Fig 2.2). Well-separated social clusters (modularity Q={net_metrics.get('modularity', 0):.4f}) correspond to interest groups (see Fig 1.7), workplaces, and neighborhoods.</p>
 
 <p class=MsoNormal><b>Pattern 3: High Local Clustering.</b> The average clustering coefficient ({net_metrics['avg_clustering']:.4f}) far exceeds the network density ({net_metrics['density']:.4f}, Fig 2.3). This "friends-of-friends-are-friends" triadic closure signals community cohesion through shared contexts.</p>
 
-<p class=MsoNormal><b>Pattern 4: Venue Type Preferences.</b> Restaurant, Pub, and Apartment venues dominate check-in activity (Fig 2.4), anchoring social life around meals and pubs (see Fig 3.3).</p>
+<p class=MsoNormal><b>Pattern 4: Venue Type Preferences.</b> Apartment venues have the highest check-ins (~37.6%), followed by Workplace (~24.2%) and Restaurant (~21.3%). Restaurant + Pub combined account for ~38.2% of check-ins (Fig 2.4), serving as the core social venues for face-to-face interactions (see Fig 3.3).</p>
 
 <p class=MsoNormal><b>Pattern 5: Diurnal Rhythm with Weekday-Weekend Divergence.</b> Activity peaks in late afternoon/evening (Fig 2.5). On weekends the peak shifts ~2h later (Fig 2.6): AtWork mode drops from {weekend['wd_work_pct']:.1f}% to {weekend['we_work_pct']:.1f}%, while Recreation rises from {weekend['wd_rec_pct']:.1f}% to {weekend['we_rec_pct']:.1f}% — matching the working-age demographic (see Fig 1.1).</p>
 
@@ -872,7 +873,7 @@ Jane Researcher, EngageTown Institute</p>
 <tr>
 <td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Key Distribution Shape</td>
 <td style='padding:5px 10px;text-align:center'>Right-skewed (balance)<br>Normal (joviality)</td>
-<td style='padding:5px 10px;text-align:center'>Power-law (degree)<br>Right-skewed (edge weights)</td>
+<td style='padding:5px 10px;text-align:center'>Approximately normal (degree)<br>Right-skewed (edge weights)</td>
 <td style='padding:5px 10px;text-align:center'>Near-normal (wages)<br>Right-skewed (employer size)</td>
 </tr>
 </table>
