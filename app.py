@@ -617,10 +617,10 @@ elif page.startswith("🤝"):
 
     st.plotly_chart(make_q2_bridge_individuals(net_metrics), width='stretch')
 
-    bridge_df = net_metrics["betweenness"].nlargest(10, "betweenness")
+    bridge_df = net_metrics["betweenness"].nlargest(10, "betweenness_centrality")
     top1_bet = bridge_df.iloc[0]
-    top10_sum = bridge_df["betweenness"].sum()
-    total_bet = net_metrics["betweenness"]["betweenness"].sum()
+    top10_sum = bridge_df["betweenness_centrality"].sum()
+    total_bet = net_metrics["betweenness"]["betweenness_centrality"].sum()
     top10_pct = top10_sum / total_bet * 100
 
     st.markdown(f"""
