@@ -180,9 +180,9 @@ if page.startswith("📊"):
 
     col_l, col_r = st.columns([2, 1])
     with col_l:
-        st.plotly_chart(make_q1_age_histogram(ps), use_container_width=True)
+        st.plotly_chart(make_q1_age_histogram(ps), width='stretch')
     with col_r:
-        st.plotly_chart(make_q1_age_pie(ps), use_container_width=True)
+        st.plotly_chart(make_q1_age_pie(ps), width='stretch')
 
     age_bins = [0, 18, 30, 45, 60, 100]
     age_labels_cn = ["0–17（未成年）", "18–29（青年）", "30–44（壮年）", "45–59（中年）", "60+（老年）"]
@@ -211,9 +211,9 @@ if page.startswith("📊"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q1_education_bar(ps), use_container_width=True)
+        st.plotly_chart(make_q1_education_bar(ps), width='stretch')
     with col_r:
-        st.plotly_chart(make_q1_edu_balance(ps), use_container_width=True)
+        st.plotly_chart(make_q1_edu_balance(ps), width='stretch')
 
     edu_dist = ps["educationLevel"].value_counts()
     top_edu = edu_dist.index[0]
@@ -243,9 +243,9 @@ if page.startswith("📊"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q1_household_size(ps), use_container_width=True)
+        st.plotly_chart(make_q1_household_size(ps), width='stretch')
     with col_r:
-        st.plotly_chart(make_q1_kids_pie(ps), use_container_width=True)
+        st.plotly_chart(make_q1_kids_pie(ps), width='stretch')
 
     kids_pct = ps['haveKids'].eq(True).mean() * 100
     hs_dist = ps['householdSize'].value_counts().sort_index()
@@ -269,7 +269,7 @@ if page.startswith("📊"):
     st.markdown("## 四、兴趣群体与社会多样性——均匀分布的社群结构")
     st.markdown("*居民兴趣偏好的分布特征及其社会整合意义*")
 
-    st.plotly_chart(make_q1_interest_groups(ps), use_container_width=True)
+    st.plotly_chart(make_q1_interest_groups(ps), width='stretch')
 
     ig_counts = ps['interestGroup'].value_counts()
     ig_min, ig_max = ig_counts.min(), ig_counts.max()
@@ -295,9 +295,9 @@ if page.startswith("📊"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q1_balance_hist(ps), use_container_width=True)
+        st.plotly_chart(make_q1_balance_hist(ps), width='stretch')
     with col_r:
-        st.plotly_chart(make_q1_joviality_hist(ps), use_container_width=True)
+        st.plotly_chart(make_q1_joviality_hist(ps), width='stretch')
 
     bal_median = ps['avg_balance'].median()
     bal_mean = ps['avg_balance'].mean()
@@ -411,9 +411,9 @@ elif page.startswith("🤝"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_degree_distribution(deg_df), use_container_width=True)
+        st.plotly_chart(make_q2_degree_distribution(deg_df), width='stretch')
     with col_r:
-        st.plotly_chart(make_q2_rank_frequency(deg_df), use_container_width=True)
+        st.plotly_chart(make_q2_rank_frequency(deg_df), width='stretch')
 
     top_degree = deg_df_nonzero.nlargest(5, "weighted_degree")
     top_ids = ', '.join(map(str, top_degree['participantId'].tolist()))
@@ -443,7 +443,7 @@ elif page.startswith("🤝"):
 
     comm_fig = make_q2_community_sizes(net_metrics)
     if comm_fig:
-        st.plotly_chart(comm_fig, use_container_width=True)
+        st.plotly_chart(comm_fig, width='stretch')
 
     mod = net_metrics.get('modularity', 0)
     st.markdown(f"""
@@ -468,9 +468,9 @@ elif page.startswith("🤝"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_clustering_hist(net_metrics), use_container_width=True)
+        st.plotly_chart(make_q2_clustering_hist(net_metrics), width='stretch')
     with col_r:
-        st.plotly_chart(make_q2_betweenness_hist(net_metrics), use_container_width=True)
+        st.plotly_chart(make_q2_betweenness_hist(net_metrics), width='stretch')
 
     avg_clust = net_metrics["clustering"]["clustering_coefficient"].mean()
     clust_ratio = avg_clust / net_metrics['density']
@@ -499,9 +499,9 @@ elif page.startswith("🤝"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_venue_types(vc), use_container_width=True)
+        st.plotly_chart(make_q2_venue_types(vc), width='stretch')
     with col_r:
-        st.plotly_chart(make_q2_top_venues(vc), use_container_width=True)
+        st.plotly_chart(make_q2_top_venues(vc), width='stretch')
 
     venue_type_counts = vc.groupby("venueType")["checkins"].sum().sort_values(ascending=False)
     top_type = venue_type_counts.index[0]
@@ -530,8 +530,8 @@ elif page.startswith("🤝"):
     st.markdown("## 模式五：昼夜活动节律——午后/傍晚为社交高峰")
     st.markdown("*24 小时活动强度曲线及活动模式的时段分布*")
 
-    st.plotly_chart(make_q2_hourly_activity(ha), use_container_width=True)
-    st.plotly_chart(make_q2_mode_area(ha, mode_cols), use_container_width=True)
+    st.plotly_chart(make_q2_hourly_activity(ha), width='stretch')
+    st.plotly_chart(make_q2_mode_area(ha, mode_cols), width='stretch')
 
     hourly_total = ha.groupby("hour_num")["total_mode"].sum().reset_index()
     peak_hour = int(hourly_total.loc[hourly_total["total_mode"].idxmax(), "hour_num"])
@@ -557,8 +557,8 @@ elif page.startswith("🤝"):
     st.markdown("## 模式五（续）：工作日与周末的行为分化")
     st.markdown("*周末社交峰值后移、休闲比例上升——工作-生活二分节律的强化证据*")
 
-    st.plotly_chart(make_q2_weekday_weekend(ha), use_container_width=True)
-    st.plotly_chart(make_q2_weekday_weekend_modes(ha, mode_cols), use_container_width=True)
+    st.plotly_chart(make_q2_weekday_weekend(ha), width='stretch')
+    st.plotly_chart(make_q2_weekday_weekend_modes(ha, mode_cols), width='stretch')
 
     peak_diff = int(weekend["we_peak"]) - int(weekend["wd_peak"])
     work_drop = weekend['wd_work_pct'] - weekend['we_work_pct']
@@ -591,9 +591,9 @@ elif page.startswith("🤝"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_age_social(cross), use_container_width=True)
+        st.plotly_chart(make_q2_age_social(cross), width='stretch')
     with col_r:
-        st.plotly_chart(make_q2_edu_social(cross), use_container_width=True)
+        st.plotly_chart(make_q2_edu_social(cross), width='stretch')
 
     st.markdown("""
     <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #2E4057; margin:12px 0;">
@@ -615,7 +615,7 @@ elif page.startswith("🤝"):
     st.markdown("## 模式七：关键影响者——少数桥接个体的结构性作用")
     st.markdown("*介数中心性识别跨社区信息通道的关键节点*")
 
-    st.plotly_chart(make_q2_bridge_individuals(net_metrics), use_container_width=True)
+    st.plotly_chart(make_q2_bridge_individuals(net_metrics), width='stretch')
 
     bridge_df = net_metrics["betweenness"].nlargest(10, "betweenness")
     top1_bet = bridge_df.iloc[0]
@@ -644,7 +644,7 @@ elif page.startswith("🤝"):
     st.markdown("## 模式八：关系强度的异质性——弱连接主导，强连接稀缺")
     st.markdown("*边权重分布揭示社交投资的不均等分配*")
 
-    st.plotly_chart(make_q2_edge_weights(sn), use_container_width=True)
+    st.plotly_chart(make_q2_edge_weights(sn), width='stretch')
 
     mean_w = sn["weight"].mean()
     median_w = sn["weight"].median()
@@ -678,9 +678,9 @@ elif page.startswith("🤝"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_travel_purpose(tp), use_container_width=True)
+        st.plotly_chart(make_q2_travel_purpose(tp), width='stretch')
     with col_r:
-        st.plotly_chart(make_q2_travel_spending(tp), use_container_width=True)
+        st.plotly_chart(make_q2_travel_spending(tp), width='stretch')
 
     st.markdown("""
     <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
@@ -705,7 +705,7 @@ elif page.startswith("🤝"):
 
     map_fig = make_venue_map(base_map, data)
     if map_fig:
-        st.plotly_chart(map_fig, use_container_width=True)
+        st.plotly_chart(map_fig, width='stretch')
     else:
         st.info("地图不可用（缺少 BaseMap.png 底图文件）")
 
@@ -852,7 +852,7 @@ elif page.startswith("🏭"):
     st.markdown("## 一、小微雇主主导——不存在大型企业")
     st.markdown("*雇主规模分布及其对经济结构的定性含义*")
 
-    st.plotly_chart(make_q3_employer_size(js), use_container_width=True)
+    st.plotly_chart(make_q3_employer_size(js), width='stretch')
 
     st.markdown(f"""
     <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #4C78A8; margin:12px 0;">
@@ -879,9 +879,9 @@ elif page.startswith("🏭"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_financial_flow(fin), use_container_width=True)
+        st.plotly_chart(make_q3_financial_flow(fin), width='stretch')
     with col_r:
-        st.plotly_chart(make_q3_expense_pie(fin), use_container_width=True)
+        st.plotly_chart(make_q3_expense_pie(fin), width='stretch')
 
     shelter_pct = econ['total_shelter'] / econ['total_spending'] * 100
     rec_pct = econ['total_recreation'] / econ['total_spending'] * 100
@@ -917,9 +917,9 @@ elif page.startswith("🏭"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_wage_hist(js), use_container_width=True)
+        st.plotly_chart(make_q3_wage_hist(js), width='stretch')
     with col_r:
-        st.plotly_chart(make_q3_wage_box(js), use_container_width=True)
+        st.plotly_chart(make_q3_wage_box(js), width='stretch')
 
     wage_range = js["avg_hourly_rate"].max() - js["avg_hourly_rate"].min()
     wage_cv = js["avg_hourly_rate"].std() / js["avg_hourly_rate"].mean()
@@ -949,7 +949,7 @@ elif page.startswith("🏭"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_building_types(bt), use_container_width=True)
+        st.plotly_chart(make_q3_building_types(bt), width='stretch')
     with col_r:
         comp_data = pd.DataFrame({
             "Metric": ["住宅建筑", "商业建筑", "注册雇主\n（在商业建筑内）", "未占用\n商业建筑"],
@@ -960,7 +960,7 @@ elif page.startswith("🏭"):
                           title=f"商业空间利用率（{econ['commercial']} 栋商业建筑，{len(js)} 家雇主）",
                           color="Count", color_continuous_scale="Viridis", text="Count")
         fig_comp.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig_comp, use_container_width=True)
+        st.plotly_chart(fig_comp, width='stretch')
 
     vacancy = max(0, econ['commercial'] - len(js))
     res_pct = econ['residential'] / bt['count'].sum() * 100
@@ -996,7 +996,7 @@ elif page.startswith("🏭"):
                          color="transaction_count", color_continuous_scale="Blues",
                          text=fin_plot["transaction_count"].apply(lambda x: f"{x:,}"))
         fig_txn.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig_txn, use_container_width=True)
+        st.plotly_chart(fig_txn, width='stretch')
     with col_r:
         fig_avg = px.bar(fin_plot.sort_values("avg_amount".abs()), y="category",
                          x=fin_plot["avg_amount"].abs(),
@@ -1004,7 +1004,7 @@ elif page.startswith("🏭"):
                          color=fin_plot["avg_amount"].abs(), color_continuous_scale="Reds",
                          text=fin_plot["avg_amount"].apply(lambda x: f"${abs(x):,.0f}"))
         fig_avg.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig_avg, use_container_width=True)
+        st.plotly_chart(fig_avg, width='stretch')
 
     food_avg = abs(fin[fin["category"] == "Food"]["avg_amount"].iloc[0])
     shelter_avg = abs(fin[fin["category"] == "Shelter"]["avg_amount"].iloc[0])
@@ -1032,8 +1032,8 @@ elif page.startswith("🏭"):
     st.markdown("## 六、产业可辨识度——服务业可部分识别，但近九成无法细分")
     st.markdown("*基于建筑共址推断的行业分类及工资差异分析*")
 
-    st.plotly_chart(make_q3_industry_pie(js_with_ind, js), use_container_width=True)
-    st.plotly_chart(make_q3_industry_wage(js_with_ind), use_container_width=True)
+    st.plotly_chart(make_q3_industry_pie(js_with_ind, js), width='stretch')
+    st.plotly_chart(make_q3_industry_wage(js_with_ind), width='stretch')
 
     gen_count = ind_counts.get("General Commercial", 0)
     rest_count = ind_counts.get("Restaurant/Food Service", 0)
@@ -1179,7 +1179,7 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns([3, 2])
     with col_l:
-        st.plotly_chart(make_q1_age_histogram(ps), use_container_width=True)
+        st.plotly_chart(make_q1_age_histogram(ps), width='stretch')
     with col_r:
         age_bins = [0, 18, 30, 45, 60, 100]
         age_labels = ["0–17（未成年）", "18–29（青年）", "30–44（壮年）", "45–59（中年）", "60+（老年）"]
@@ -1210,9 +1210,9 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q1_education_bar(ps), use_container_width=True)
+        st.plotly_chart(make_q1_education_bar(ps), width='stretch')
     with col_r:
-        st.plotly_chart(make_q1_edu_balance(ps), use_container_width=True)
+        st.plotly_chart(make_q1_edu_balance(ps), width='stretch')
 
     edu_dist = ps["educationLevel"].value_counts()
     top_edu = edu_dist.index[0]
@@ -1237,11 +1237,11 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q2_degree_distribution(net_metrics["degree"]), use_container_width=True)
+        st.plotly_chart(make_q2_degree_distribution(net_metrics["degree"]), width='stretch')
     with col_r:
         comm_fig = make_q2_community_sizes(net_metrics)
         if comm_fig:
-            st.plotly_chart(comm_fig, use_container_width=True)
+            st.plotly_chart(comm_fig, width='stretch')
 
     st.markdown(f"""
     <div style="background:#f5f6fa; padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
@@ -1262,7 +1262,7 @@ elif page.startswith("📋"):
     st.markdown("## 四、社交活动的时间与空间模式")
     st.markdown("*居民行为节律——何时、何地、以何种方式社交*")
 
-    st.plotly_chart(make_q2_hourly_activity(ha), use_container_width=True)
+    st.plotly_chart(make_q2_hourly_activity(ha), width='stretch')
 
     hourly_total = ha.groupby("hour_num")["total_mode"].sum().reset_index()
     peak_hour = int(hourly_total.loc[hourly_total["total_mode"].idxmax(), "hour_num"])
@@ -1281,7 +1281,7 @@ elif page.startswith("📋"):
     # Venue map
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q4_mini_venue(vc), use_container_width=True)
+        st.plotly_chart(make_q4_mini_venue(vc), width='stretch')
     with col_r:
         total_checkins = vc["checkins"].sum()
         social_checkins = vc[vc["venueType"].isin(["Restaurant", "Pub"])]["checkins"].sum()
@@ -1311,9 +1311,9 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_financial_flow(fin), use_container_width=True)
+        st.plotly_chart(make_q3_financial_flow(fin), width='stretch')
     with col_r:
-        st.plotly_chart(make_q4_mini_financial(fin), use_container_width=True)
+        st.plotly_chart(make_q4_mini_financial(fin), width='stretch')
 
     shelter_amt = abs(fin[fin['category'] == 'Shelter']['total_amount'].iloc[0])
     rec_amt = abs(fin[fin['category'] == 'Recreation']['total_amount'].iloc[0])
@@ -1343,9 +1343,9 @@ elif page.startswith("📋"):
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_employer_size(js), use_container_width=True)
+        st.plotly_chart(make_q3_employer_size(js), width='stretch')
     with col_r:
-        st.plotly_chart(make_q3_wage_box(js), use_container_width=True)
+        st.plotly_chart(make_q3_wage_box(js), width='stretch')
 
     gen_count = ind_counts.get("General Commercial", 0)
     rest_count = ind_counts.get("Restaurant/Food Service", 0)
@@ -1377,13 +1377,13 @@ elif page.startswith("📋"):
     map_fig = make_venue_map(base_map, data)
     if map_fig:
         map_fig.update_layout(height=550)
-        st.plotly_chart(map_fig, use_container_width=True)
+        st.plotly_chart(map_fig, width='stretch')
     else:
         st.info("地图不可用（缺少 BaseMap.png 底图文件）")
 
     col_l, col_r = st.columns(2)
     with col_l:
-        st.plotly_chart(make_q3_building_types(bt), use_container_width=True)
+        st.plotly_chart(make_q3_building_types(bt), width='stretch')
     with col_r:
         vacancy = max(0, econ['commercial'] - len(js))
         st.markdown(f"""
