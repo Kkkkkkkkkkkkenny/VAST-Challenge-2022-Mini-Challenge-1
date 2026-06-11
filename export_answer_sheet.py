@@ -120,8 +120,25 @@ js_with_ind, ind_counts, _ = prepare_employer_industry(data, js)
 
 print("\nGenerating charts...")
 
+# Check if kaleido/Chrome is available
+SKIP_IMAGES = False
+try:
+    import kaleido
+    # Try a simple test to see if Chrome is available
+    test_fig = go.Figure()
+    test_fig.add_trace(go.Scatter(x=[1, 2], y=[1, 2]))
+    pio.write_image(test_fig, "/tmp/test_kaleido.png", width=100, height=100)
+    print("  Kaleido/Chrome available - generating images")
+except Exception as e:
+    print(f"  Kaleido/Chrome not available: {e}")
+    print("  Skipping image generation, will use placeholder references")
+    SKIP_IMAGES = True
+
 def save_fig(fig, name, scale=2):
     """Save plotly figure as PNG with consistent sizing."""
+    if SKIP_IMAGES:
+        print(f"  [SKIP] {name} (no Chrome)")
+        return name
     path = IMAGES_DIR / name
     fig.update_layout(
         font=dict(size=12),
@@ -159,8 +176,8 @@ if comm_fig:
 
 save_fig(make_q2_clustering_hist(net_metrics), "chart_q2_03_clustering.png")
 save_fig(make_q2_venue_types(vc), "chart_q2_04_venue_types.png")
-save_fig(make_q2_hourly_activity(ha), "chart_q2_05_hourly_activity.png")
-save_fig(make_q2_weekday_weekend(ha), "chart_q2_06_weekday_weekend.png")
+save_fig(make_q2_hourly_activity(ha, mode_cols), "chart_q2_05_hourly_activity.png")
+save_fig(make_q2_weekday_weekend(ha, mode_cols), "chart_q2_06_weekday_weekend.png")
 save_fig(make_q2_age_social(cross), "chart_q2_07_age_social.png")
 save_fig(make_q2_bridge_individuals(net_metrics), "chart_q2_08_bridge_individuals.png")
 save_fig(make_q2_edge_weights(sn), "chart_q2_09_edge_weights.png")
@@ -241,71 +258,65 @@ def fig_block(filename, caption, max_width="100%"):
 
 q1_images_html = (
     fig_block("chart_q1_01_age_hist.png",
-        f"Fig 1.1: Age distribution histogram showing a right-skewed population concentrated "
-        f"in the 30–44 age range, with mean (dashed red, {ps['age'].mean():.1f} years) and "
-        f"median (dashed orange, {ps['age'].median():.0f} years) annotated.")
+        f"图 1.1：年龄分布直方图，显示人口呈右偏态分布，集中在 30–44 岁年龄段，"
+        f"均值（红色虚线，{ps['age'].mean():.1f} 岁）和中位数（橙色虚线，{ps['age'].median():.0f} 岁）已标注。")
     + fig_block("chart_q1_02_age_pie.png",
-        f"Fig 1.2: Age group composition — the 30–44 cohort is the largest segment, while "
-        f"elderly residents (60+) comprise the smallest share, consistent with a "
-        f"workforce-oriented community.")
+        f"图 1.2：年龄组构成——30–44 岁年龄段占比最大，老年人口（60+）占比最小，"
+        f"符合劳动导向型社区特征。")
     + fig_block("chart_q1_03_education_bar.png",
-        f"Fig 1.3: Education level distribution — 'High School or College' is the most common "
-        f"attainment, followed by 'Bachelors', with 'Low' and 'Graduate' forming the tails.")
+        f"图 1.3：教育水平分布——'高中或大学肄业'最为普遍，其次是'学士'，"
+        f"'低'和'研究生'构成两端。")
     + fig_block("chart_q1_04_edu_balance.png",
-        f"Fig 1.4: Average available balance rises progressively with education level — "
-        f"Graduate degree holders maintain substantially higher balances than those with "
-        f"Low education (see Fig 3.5 for the wage dimension of this education premium).")
+        f"图 1.4：平均可用余额随教育水平递增——研究生学历者的平均可用余额显著高于"
+        f"低学历群体（工资维度见图 3.5）。")
     + fig_block("chart_q1_05_household_size.png",
-        f"Fig 1.5: Household size is tightly concentrated at 2 persons "
-        f"({ps['householdSize'].value_counts().get(2, 0) / len(ps) * 100:.0f}% of "
-        f"households), with very few residents in households larger than 3.")
+        f"图 1.5：家庭规模高度集中于 2 人"
+        f"（{ps['householdSize'].value_counts().get(2, 0) / len(ps) * 100:.0f}% 的家庭），"
+        f"极少有超过 3 人的家庭。")
     + fig_block("chart_q1_06_kids_pie.png",
-        f"Fig 1.6: Approximately {ps['haveKids'].eq(True).mean() * 100:.0f}% of residents "
-        f"have children, indicating a mix of families with kids and childless households — "
-        f"consistent with the small-household pattern (Fig 1.5).")
+        f"图 1.6：约 {ps['haveKids'].eq(True).mean() * 100:.0f}% 的居民有子女，"
+        f"表明有子女家庭与无子女家庭并存——与小型家庭模式一致（图 1.5）。")
     + fig_block("chart_q1_07_interest_groups.png",
-        f"Fig 1.7: All {ps['interestGroup'].nunique()} interest groups (A–J) contain roughly "
-        f"{ps['interestGroup'].value_counts().mean():.0f} members each — a near-uniform "
-        f"distribution that promotes diverse social mixing and prevents concentration in any "
-        f"single interest category.")
+        f"图 1.7：{ps['interestGroup'].nunique()} 个兴趣组（A–J）每组约 "
+        f"{ps['interestGroup'].value_counts().mean():.0f} 人——近乎均匀的分布促进了"
+        f"多元化的社会混合，避免了单一兴趣领域的集中。")
     + fig_block("chart_q1_08_balance_hist.png",
-        f"Fig 1.8: The balance distribution is right-skewed with a long tail — most residents "
-        f"cluster at moderate levels while a minority hold substantially higher balances "
-        f"(median ${ps['avg_balance'].median():,.0f}). This mirrors the employer size "
-        f"distribution (see Fig 3.1), suggesting wealth concentration follows business ownership.")
+        f"图 1.8：余额分布呈右偏态并带有长尾——多数居民集中于中等水平，"
+        f"少数高净值个体形成长尾（中位数 ${ps['avg_balance'].median():,.0f}）。"
+        f"这与雇主规模分布相似（见图 3.1），表明财富集中与经营所有权相关。")
     + fig_block("chart_q1_09_joviality_hist.png",
-        f"Fig 1.9: Joviality scores are approximately normally distributed around 0.5 "
-        f"(mean {ps['joviality'].mean():.3f}, SD {ps['joviality'].std():.3f}), indicating "
-        f"a generally content population without extreme polarization in subjective well-being.")
+        f"图 1.9：愉悦指数近似正态分布于 0.5 附近"
+        f"（均值 {ps['joviality'].mean():.3f}，标准差 {ps['joviality'].std():.3f}），"
+        f"表明居民整体幸福感适中，未出现极端分化。")
 )
 
 q1_munzner_framework = f"""<p class=MsoNormal style='background:#f5f7fa;padding:10px 14px;border-left:3px solid #2E4057;margin:8px 0 12px 0;font-size:10.5pt'>
-<b>Analytical Framework (Munzner, 2009).</b>
-<b>Domain Situation:</b> We characterized EngageTown's population from 1,011 volunteer records assumed representative.
-<b>Data/Task Abstraction:</b> We abstracted demographic attributes (age, education, household size, children, interest groups, financial balance, joviality) as 1D distributions and bivariate comparisons — a characterization task aimed at discovering the town's demographic profile.
-<b>Visual Encoding:</b> We used histograms with reference lines (age, balance), bar charts (education, household, interests), pie charts (age groups, kids), and bivariate bar charts with error bars (education × balance).
-<b>Idiom Design:</b> The {q1_img_count} figures (Fig 1.1–1.{q1_img_count}) progress from univariate population distributions to bivariate comparisons, enabling both overview and drill-down into specific demographic dimensions.
+<b>分析框架（Munzner, 2009）。</b>
+<b>领域情境：</b>基于 1,011 条具有代表性的志愿者记录，对 EngageTown 人口进行系统特征刻画。
+<b>数据/任务抽象：</b>将人口属性（年龄、教育程度、家庭规模、子女状况、兴趣组、财务余额、愉悦指数）抽象为一维分布与双变量比较——旨在发现城市的人口统计学轮廓。
+<b>视觉编码：</b>采用带参考线的直方图（年龄、余额）、条形图（教育、家庭、兴趣）、饼图（年龄组、子女）以及带误差线的双变量条形图（教育×余额）。
+<b>图表设计：</b>{q1_img_count} 幅图（图 1.1–1.{q1_img_count}）从单变量人口分布递进至双变量比较，兼顾概览与特定人口维度的深入探查。
 </p>"""
 
-q1_answer_text = f"""<p class=MsoNormal><b>1. Demographics of EngageTown</b></p>
+q1_answer_text = f"""<p class=MsoNormal><b>1. EngageTown 人口特征</b></p>
 
 {q1_munzner_framework}
 
-<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>({q1_img_count} figures / ~__WC_Q1__ words — limit: 500 words)</p>
+<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>({q1_img_count} 幅图 / ~__WC_Q1__ 词 — 限制: 500 词)</p>
 
-<p class=MsoNormal>We characterize EngageTown as a community of predominantly working-age adults living in small households with moderate economic well-being and diverse social interests, based on 1,011 volunteer records assumed representative of the town.</p>
+<p class=MsoNormal>基于 1,011 条具有代表性的志愿者记录，我们将 EngageTown 刻画为一个以劳动年龄人口为主体、家庭规模较小、经济状况中等、社会兴趣多元化的社区。</p>
 
-<p class=MsoNormal><b>Age Structure.</b> The population has a mean age of {ps['age'].mean():.1f} years (median {ps['age'].median():.0f}), with the largest cohorts in the 30–44 age range (Fig 1.1, 1.2). The distribution shows a slight right skew — fewer elderly (60+) than young adults. This profile is characteristic of an economically active, workforce-oriented community rather than a retirement destination.</p>
+<p class=MsoNormal><b>年龄结构。</b>人口平均年龄为 {ps['age'].mean():.1f} 岁（中位数 {ps['age'].median():.0f}），30–44 岁年龄段人数最多（图 1.1、1.2）。年龄分布呈轻微右偏态——老年人口（60+）相对较少。这一特征表明该社区是一个经济活跃的劳动导向型社区，而非养老目的地。</p>
 
-<p class=MsoNormal><b>Education and Economic Status.</b> The majority hold "High School or College" or "Bachelors" qualifications (Fig 1.3). Education correlates positively with financial well-being: Graduate degree holders maintain substantially higher balances than those with "Low" education (Fig 1.4). This education-wage gradient is corroborated by the wage analysis in Q3 (see Fig 3.5).</p>
+<p class=MsoNormal><b>教育与经济状况。</b>多数居民持有"高中或大学肄业"或"学士"学历（图 1.3）。教育水平与经济状况呈正相关：研究生学历者的平均可用余额显著高于"低"学历群体（图 1.4）。这一教育-工资梯度在 Q3 的工资分析中得到印证（见图 3.5）。</p>
 
-<p class=MsoNormal><b>Household and Family Structure.</b> The average household contains {ps['householdSize'].mean():.1f} persons (Fig 1.5), and {ps['haveKids'].eq(True).mean()*100:.0f}% of residents have children (Fig 1.6) — predominantly two-adult households alongside a minority of families. The micro-household pattern aligns with the micro-enterprise structure in Q3 (see Fig 3.1).</p>
+<p class=MsoNormal><b>家庭与居住结构。</b>户均规模为 {ps['householdSize'].mean():.1f} 人（图 1.5），{ps['haveKids'].eq(True).mean()*100:.0f}% 的居民有子女（图 1.6）——以二人户为主，有子女家庭占少数。小型家庭模式与 Q3 中的小微企业结构相呼应（见图 3.1）。</p>
 
-<p class=MsoNormal><b>Social Diversity.</b> The {ps['interestGroup'].nunique()} interest groups (A–J) are evenly distributed, each containing roughly {ps['interestGroup'].value_counts().mean():.0f} members (Fig 1.7). This near-uniform distribution promotes diverse social mixing and underpins the strong community structure in the social network (see Fig 2.2).</p>
+<p class=MsoNormal><b>社会多样性。</b>{ps['interestGroup'].nunique()} 个兴趣组（A–J）分布均匀，每组约 {ps['interestGroup'].value_counts().mean():.0f} 人（图 1.7）。这种近乎均匀的分布促进了多元化的社会混合，支撑了社交网络中的强社区结构（见图 2.2）。</p>
 
-<p class=MsoNormal><b>Financial Well-being.</b> Residents maintain moderate balances with a right-skewed distribution — most cluster at moderate levels with a long tail of higher-wealth individuals (Fig 1.8). Joviality, a composite happiness indicator, is approximately normally distributed around 0.5 (Fig 1.9), suggesting a content population without extreme polarization.</p>
+<p class=MsoNormal><b>经济状况。</b>居民维持中等水平的可用余额，分布呈右偏态——多数集中于中等水平，少数高净值个体形成长尾（图 1.8）。愉悦指数（Joviality）近似正态分布于 0.5 附近（图 1.9），表明居民整体幸福感适中，未出现极端分化。</p>
 
-<p class=MsoNormal><b>Rationale.</b> Characterizations derive from participant_summary data aggregating 114 million activity log records across 15 months (March 2022 – May 2023). The representativeness assumption is necessary because volunteer selection was unspecified; however, the demographic diversity (age, education, household types) suggests reasonable population coverage. Key limitations include the absence of gender, ethnicity, and occupation data.</p>
+<p class=MsoNormal><b>依据。</b>上述特征刻画基于 participant_summary 数据，该数据汇总了 15 个月（2022 年 3 月–2023 年 5 月）1.14 亿条活动日志记录。代表性假设是必要的，因为志愿者选择标准未明确说明；但人口多样性（年龄、教育、家庭类型）表明样本具有合理的人口覆盖度。主要局限包括缺乏性别、民族和职业数据。</p>
 """
 
 q1_word_count = len(re.sub(r'<[^>]+>', ' ', q1_answer_text).split())
@@ -318,103 +329,89 @@ q1_answer_text = q1_answer_text.replace("__WC_Q1__", str(q1_word_count))
 
 q2_images_html = (
     fig_block("chart_q2_01_degree_dist.png",
-        f"Fig 2.1: Degree distribution on log-log axes showing an approximately normal pattern — "
-        f"most residents maintain similar social circle sizes, indicating high homogeneity in "
-        f"social connectivity. Unlike typical scale-free networks, there are no 'super-connectors' "
-        f"dominating the social landscape.")
+        f"图 2.1：度分布（对数坐标），呈近似正态分布——大多数居民维持相似规模的社交圈，"
+        f"表明社交连接高度均质化。与典型的无标度网络不同，没有'超级连接者'主导社交格局。")
     + fig_block("chart_q2_02_communities.png",
-        f"Fig 2.2: Community size distribution from Louvain detection (modularity "
-        f"Q={net_metrics.get('modularity', 0):.4f}). Communities range from small clusters "
-        f"of ~10 to large groups of 60–80 members, reflecting the interest group structure "
-        f"identified in Q1 (see Fig 1.7).")
+        f"图 2.2：Louvain 社区检测结果（模块度 Q={net_metrics.get('modularity', 0):.4f}），"
+        f"社区规模从约 10 人的小集群到 60–80 人的大群体不等，反映了 Q1 中识别的兴趣组结构"
+        f"（见图 1.7）。")
     + fig_block("chart_q2_03_clustering.png",
-        f"Fig 2.3: Clustering coefficient distribution — the average clustering coefficient "
-        f"({net_metrics['avg_clustering']:.4f}) far exceeds the network density "
-        f"({net_metrics['density']:.4f}), demonstrating the 'friends-of-friends-are-friends' "
-        f"triadic closure pattern typical of tightly-knit real-world social networks.")
+        f"图 2.3：聚类系数分布——平均聚类系数（{net_metrics['avg_clustering']:.4f}）远高于"
+        f"网络密度（{net_metrics['density']:.4f}），展示了'朋友的朋友亦是朋友'的三元闭包模式，"
+        f"这是紧密现实社交网络的典型特征。")
     + fig_block("chart_q2_04_venue_types.png",
-        f"Fig 2.4: Check-ins by venue type — Apartment venues have the highest check-ins "
-        f"(~37.6%), followed by Workplace (~24.2%) and Restaurant (~21.3%). Restaurant + Pub "
-        f"combined account for ~38.2% of check-ins, serving as the core social venues "
-        f"(see Fig 3.3 for the corresponding expense breakdown).")
+        f"图 2.4：按场所类型统计的签到量——公寓类场所签到最多（~37.6%），其次是工作场所"
+        f"（~24.2%）和餐厅（~21.3%）。餐厅+酒吧合计占签到量的 ~38.2%，作为核心社交场所"
+        f"（支出明细见图 3.3）。")
     + fig_block("chart_q2_05_hourly_activity.png",
-        f"Fig 2.5: Activity by hour of day showing a clear diurnal rhythm — low overnight, "
-        f"rising through morning, peaking in late afternoon/evening (17:00–19:00). This "
-        f"pattern is consistent with the working-age demographic profile (see Fig 1.1).")
+        f"图 2.5：按小时统计的活动量，呈现清晰的昼夜节律——夜间低谷，上午攀升，"
+        f"傍晚达到峰值（17:00–19:00）。这一模式与劳动年龄人口特征一致（见图 1.1）。")
     + fig_block("chart_q2_06_weekday_weekend.png",
-        f"Fig 2.6: Weekday vs weekend activity — on weekends, the peak shifts ~2 hours later. "
-        f"AtWork mode drops from {weekend['wd_work_pct']:.1f}% (weekday) to "
-        f"{weekend['we_work_pct']:.1f}% (weekend), while Recreation rises from "
-        f"{weekend['wd_rec_pct']:.1f}% to {weekend['we_rec_pct']:.1f}%, confirming "
-        f"weekends as recreation-focused periods with later schedules.")
+        f"图 2.6：工作日与周末活动对比——周末峰值后移约 2 小时。工作模式占比从"
+        f"工作日 {weekend['wd_work_pct']:.1f}% 降至周末 {weekend['we_work_pct']:.1f}%，"
+        f"休闲模式从 {weekend['wd_rec_pct']:.1f}% 升至 {weekend['we_rec_pct']:.1f}%，"
+        f"确认周末为以休闲为主的时段。")
     + fig_block("chart_q2_07_age_social.png",
-        f"Fig 2.7: Age vs social connectivity (weighted degree) with LOWESS trend — "
-        f"younger and middle-aged adults (25–45) are most socially active, with gradual "
-        f"decline among older residents. This age-connectivity curve complements the "
-        f"education-balance gradient identified in Q1 (see Fig 1.4).")
+        f"图 2.7：年龄与社交连接度（加权度）关系，带 LOWESS 趋势线——青年与壮年群体"
+        f"（25–45 岁）社交最活跃，随年龄增长逐步下降。这一年龄-连接曲线与 Q1 中的"
+        f"教育-余额梯度形成互补（见图 1.4）。")
     + fig_block("chart_q2_08_bridge_individuals.png",
-        f"Fig 2.8: Top 10 bridge individuals by betweenness centrality — these 'connectors' "
-        f"hold betweenness scores orders of magnitude above average, acting as critical "
-        f"bridges between otherwise separate communities. Targeting these individuals for "
-        f"community initiatives would be disproportionately effective.")
+        f"图 2.8：介数中心性排名前 10 的桥接个体——这些'连接者'的介数得分高出平均值数个"
+        f"数量级，在原本分离的社区之间充当关键桥梁。针对这些个体开展社区活动将事半功倍。")
     + fig_block("chart_q2_09_edge_weights.png",
-        f"Fig 2.9: Edge weight distribution (mean {sn['weight'].mean():.1f}, median "
-        f"{sn['weight'].median():.0f}, max {sn['weight'].max():.0f}) — heavily skewed, "
-        f"consistent with Dunbar's number theory: most social ties involve relatively few "
-        f"interactions while a core set of strong ties receives disproportionate attention.")
+        f"图 2.9：边权重分布（均值 {sn['weight'].mean():.1f}，中位数 {sn['weight'].median():.0f}，"
+        f"最大值 {sn['weight'].max():.0f}）——高度右偏，符合邓巴数理论：多数社交关系涉及"
+        f"较少的互动，而核心强连接获得不成比例的关注。")
     + fig_block("chart_q2_10_travel_purpose.png",
-        f"Fig 2.10: Travel by purpose — social and recreational travel dominates both "
-        f"frequency and spending, reinforcing the venue preference patterns above. "
-        f"Commuting is secondary, suggesting many residents live close to workplaces. "
-        f"High discretionary travel for social purposes aligns with the recreation-heavy "
-        f"expense structure (see Fig 3.3).")
+        f"图 2.10：按目的分类的出行——社交和休闲出行在频次和消费上均占主导，印证了上述"
+        f"场所偏好模式。通勤占比较低，表明许多居民职住接近。社交目的的高自由出行与"
+        f"休闲导向的支出结构一致（见图 3.3）。")
     + fig_block("chart_q2_11_daily_activity.png",
-        f"Fig 2.11: Daily activity trends by mode (7-day rolling average) — reveals "
-        f"stable weekly rhythms with periodic spikes in Recreation and Eating activity "
-        f"on weekends. AtWork and AtHome modes exhibit complementary diurnal patterns, "
-        f"confirming the weekday-weekend divergence observed in Patterns 5 and 6.")
+        f"图 2.11：按模式统计的每日活动趋势（7 天滚动平均）——揭示稳定的周节律，"
+        f"周末休闲和餐饮活动出现周期性峰值。工作和居家模式呈现互补的昼夜模式，"
+        f"确认了模式 5 和 6 中观察到的工作日-周末分化。")
     + f"""<img src="{IMG_BASE}/chart_q2_12_hourly_animation.gif" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i>Fig 2.12: Animated hourly activity density by mode (24 frames, 600ms each) —
-the bar chart race cycles through all 24 hours, showing how AtHome dominates overnight (00:00–06:00),
-AtWork rises sharply during business hours (08:00–17:00), and Recreation/Eating peak in the evening
-(18:00–21:00). This animation makes the diurnal rhythm identified in Pattern 5 directly visible.</i></p>"""
+<p class=MsoNormal style='text-align:center'><i>图 2.12：按模式统计的每小时活动密度动画（24 帧，每帧 600ms）——
+柱状图竞赛循环展示 24 小时，显示居家模式在夜间占主导（00:00–06:00），
+工作模式在工作时间急剧上升（08:00–17:00），休闲/餐饮模式在傍晚达到峰值
+（18:00–21:00）。此动画使模式 5 中识别的昼夜节律直观可见。</i></p>"""
 )
 
 q2_munzner_framework = f"""<p class=MsoNormal style='background:#f5f7fa;padding:10px 14px;border-left:3px solid #2E4057;margin:8px 0 12px 0;font-size:10.5pt'>
-<b>Analytical Framework (Munzner, 2009).</b>
-<b>Domain Situation:</b> We analyzed how EngageTown residents connect, gather, and structure their time.
-<b>Data/Task Abstraction:</b> We modeled social relationships as a weighted undirected graph (nodes=residents, edges=interaction frequency) supplemented with venue check-ins, hourly activity logs, and travel journals — a network discovery task.
-<b>Visual Encoding:</b> We used log-log scatter plots (degree distribution), bar charts (community sizes, venue types, bridge individuals), histograms (clustering, edge weights), line/area charts (hourly, weekend, daily activity), and scatter+LOWESS (age-connectivity).
-<b>Idiom Design:</b> The {q2_img_count} figures (Fig 2.1–2.{q2_img_count}) progress from structural network properties (Patterns 1–3) through behavioral patterns (Patterns 4–5), temporal rhythms (Fig 2.11–2.12), to demographic/spatial correlates (Patterns 6–10).
+<b>分析框架（Munzner, 2009）。</b>
+<b>领域情境：</b>分析 EngageTown 居民如何建立社交联系、聚集活动及安排时间。
+<b>数据/任务抽象：</b>将社交关系建模为加权无向图（节点=居民，边=互动频率），辅以场所签到、每小时活动日志和出行日志——属于网络发现任务。
+<b>视觉编码：</b>采用对数散点图（度分布）、条形图（社区规模、场所类型、桥接个体）、直方图（聚类、边权重）、折线/面积图（小时、周末、每日活动）以及散点+LOWESS（年龄-连接度）。
+<b>图表设计：</b>{q2_img_count} 幅图（图 2.1–2.{q2_img_count}）从网络拓扑属性（模式 1–3）递进至行为模式（模式 4–5）、时间节律（图 2.11–2.12），再到人口/空间关联（模式 6–10）。
 </p>"""
 
-q2_answer_text = f"""<p class=MsoNormal><b>2. Social Activities — Ten Significant Patterns</b></p>
+q2_answer_text = f"""<p class=MsoNormal><b>2. 社交活动——十项显著模式</b></p>
 
 {q2_munzner_framework}
 
-<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>({q2_img_count} figures / ~__WC_Q2__ words — limit: 500 words)</p>
+<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>({q2_img_count} 幅图 / ~__WC_Q2__ 词 — 限制: 500 词)</p>
 
-<p class=MsoNormal>We analyzed {net_metrics['num_nodes']:,} residents ({net_metrics['num_edges']:,} edges) and venue/temporal data. Ten patterns emerged:</p>
+<p class=MsoNormal>我们分析了 {net_metrics['num_nodes']:,} 名居民（{net_metrics['num_edges']:,} 条边）及场所/时间数据，识别出十项显著模式：</p>
 
-<p class=MsoNormal><b>Pattern 1: Approximately Normal Degree Distribution.</b> The weighted degree follows an approximately normal distribution (Fig 2.1) — most residents maintain similar social circle sizes, indicating high homogeneity in social connectivity. Unlike typical scale-free networks, there are no 'super-connectors' dominating the social landscape.</p>
+<p class=MsoNormal><b>模式一：近似正态的度分布。</b>加权度呈近似正态分布（图 2.1）——大多数居民维持相似规模的社交圈，表明社交连接高度均质化。与典型的无标度网络不同，没有"超级连接者"主导社交格局。</p>
 
-<p class=MsoNormal><b>Pattern 2: Strong Community Structure.</b> Louvain community detection identifies {net_metrics.get('num_communities', 'N/A')} distinct communities (Fig 2.2). Well-separated social clusters (modularity Q={net_metrics.get('modularity', 0):.4f}) correspond to interest groups (see Fig 1.7), workplaces, and neighborhoods.</p>
+<p class=MsoNormal><b>模式二：强社区结构。</b>Louvain 社区检测识别出 {net_metrics.get('num_communities', 'N/A')} 个不同社区（图 2.2）。分离良好的社交集群（模块度 Q={net_metrics.get('modularity', 0):.4f}）对应兴趣组（见图 1.7）、工作场所和邻里。</p>
 
-<p class=MsoNormal><b>Pattern 3: High Local Clustering.</b> The average clustering coefficient ({net_metrics['avg_clustering']:.4f}) far exceeds the network density ({net_metrics['density']:.4f}, Fig 2.3). This "friends-of-friends-are-friends" triadic closure signals community cohesion through shared contexts.</p>
+<p class=MsoNormal><b>模式三：高局部聚类。</b>平均聚类系数（{net_metrics['avg_clustering']:.4f}）远高于网络密度（{net_metrics['density']:.4f}，图 2.3）。这种"朋友的朋友亦是朋友"的三元闭包信号表明社区通过共享背景实现凝聚。</p>
 
-<p class=MsoNormal><b>Pattern 4: Venue Type Preferences.</b> Apartment venues have the highest check-ins (~37.6%), followed by Workplace (~24.2%) and Restaurant (~21.3%). Restaurant + Pub combined account for ~38.2% of check-ins (Fig 2.4), serving as the core social venues for face-to-face interactions (see Fig 3.3).</p>
+<p class=MsoNormal><b>模式四：场所类型偏好。</b>公寓类场所签到最多（~37.6%），其次是工作场所（~24.2%）和餐厅（~21.3%）。餐厅+酒吧合计占签到量的 ~38.2%（图 2.4），作为面对面互动的核心社交场所（见图 3.3）。</p>
 
-<p class=MsoNormal><b>Pattern 5: Diurnal Rhythm with Weekday-Weekend Divergence.</b> Activity peaks in late afternoon/evening (Fig 2.5). On weekends the peak shifts ~2h later (Fig 2.6): AtWork mode drops from {weekend['wd_work_pct']:.1f}% to {weekend['we_work_pct']:.1f}%, while Recreation rises from {weekend['wd_rec_pct']:.1f}% to {weekend['we_rec_pct']:.1f}% — matching the working-age demographic (see Fig 1.1).</p>
+<p class=MsoNormal><b>模式五：昼夜节律与工作日-周末分化。</b>活动在傍晚达到峰值（图 2.5）。周末峰值后移约 2 小时（图 2.6）：工作模式从 {weekend['wd_work_pct']:.1f}% 降至 {weekend['we_work_pct']:.1f}%，休闲模式从 {weekend['wd_rec_pct']:.1f}% 升至 {weekend['we_rec_pct']:.1f}%——与劳动年龄人口特征吻合（见图 1.1）。</p>
 
-<p class=MsoNormal><b>Pattern 6: Demographic Influence on Social Connectivity.</b> Age shows a curvilinear relationship with connectivity — younger and middle-aged adults (25–45) are most active, declining among older residents (Fig 2.7). Social engagement appears structured by life stage and socioeconomic status (see Fig 1.4).</p>
+<p class=MsoNormal><b>模式六：人口特征对社交连接的影响。</b>年龄与连接度呈曲线关系——青年与壮年群体（25–45 岁）最活跃，老年居民逐步下降（图 2.7）。社交参与似乎由生命阶段和社会经济地位所塑造（见图 1.4）。</p>
 
-<p class=MsoNormal><b>Pattern 7: Key Bridge Individuals.</b> A small number of residents hold disproportionately high betweenness centrality (Fig 2.8), acting as critical bridges between communities — their scores are orders of magnitude above the mean.</p>
+<p class=MsoNormal><b>模式七：关键桥接个体。</b>少数居民持有不成比例的高中介中心性（图 2.8），在社区之间充当关键桥梁——其得分高出平均值数个数量级。</p>
 
-<p class=MsoNormal><b>Pattern 8: Interaction Frequency Heterogeneity.</b> Edge weights span a wide range (mean {sn['weight'].mean():.1f}, median {sn['weight'].median():.0f}, max {sn['weight'].max():.0f}) with a heavily skewed distribution (Fig 2.9). Most ties involve few interactions while a small core of strong ties receives most attention.</p>
+<p class=MsoNormal><b>模式八：互动频率异质性。</b>边权重跨度大（均值 {sn['weight'].mean():.1f}，中位数 {sn['weight'].median():.0f}，最大值 {sn['weight'].max():.0f}），分布高度右偏（图 2.9）。多数关系涉及较少互动，而核心强连接获得不成比例的关注。</p>
 
-<p class=MsoNormal><b>Pattern 9: Social/Recreational Travel Dominance.</b> Social and recreational purposes dominate travel (Fig 2.10); high discretionary travel aligns with the recreation-heavy expense structure (see Fig 3.3).</p>
+<p class=MsoNormal><b>模式九：社交/休闲出行主导。</b>社交和休闲目的主导出行（图 2.10）；高自由出行与休闲导向的支出结构一致（见图 3.3）。</p>
 
-<p class=MsoNormal><b>Pattern 10: Geographic Venue Clustering.</b> Social venues cluster in distinct commercial/social districts (see Fig 4.4), creating neighborhood-scale social hubs that reinforce community structure (see Fig 2.2).</p>
+<p class=MsoNormal><b>模式十：社交场所空间集聚。</b>社交场所在不同商业/社交区域集聚（见图 4.4），形成社区规模的社交中心，强化了社区结构（见图 2.2）。</p>
 
 <p class=MsoNormal><b>Rationale.</b> Community detection used the Louvain algorithm [2] with weighted edges; centrality computed on the largest connected component. Convergence of patterns across network, temporal, venue, and travel data provides triangulating evidence.</p>
 """
@@ -429,87 +426,76 @@ q2_answer_text = q2_answer_text.replace("__WC_Q2__", str(q2_word_count))
 
 q3_images_html = (
     fig_block("chart_q3_01_employer_size.png",
-        f"Fig 3.1: Employer size distribution — all {len(js)} employers are micro-enterprises "
-        f"(range {econ['min_e']}–{econ['max_e']} employees, mean {js['employee_count'].mean():.1f}, "
-        f"median {js['employee_count'].median():.0f}). No employer exceeds {econ['max_e']} "
-        f"workers — there are no factories, corporate offices, or large institutions. This "
-        f"mirrors the small-household demographic structure (see Fig 1.5).")
+        f"图 3.1：雇主规模分布——所有 {len(js)} 家雇主均为小微企业"
+        f"（规模 {econ['min_e']}–{econ['max_e']} 人，均值 {js['employee_count'].mean():.1f}，"
+        f"中位数 {js['employee_count'].median():.0f}）。没有任何雇主超过 {econ['max_e']} 人——"
+        f"没有工厂、公司总部或大型机构。这与小型家庭人口结构相呼应（见图 1.5）。")
     + fig_block("chart_q3_02_financial_flow.png",
-        f"Fig 3.2: Net financial flow by category — Wages (${total_w:,.0f} annually) are the "
-        f"sole income source. Shelter (${total_s:,.0f}), Recreation (${total_r:,.0f}), and "
-        f"Food (${total_f:,.0f}) dominate expenses, with Recreation nearly rivaling Food — "
-        f"an unusual pattern signaling an active leisure and social culture.")
+        f"图 3.2：按类别统计的净现金流——工资（年总额 ${total_w:,.0f}）为唯一收入来源。"
+        f"住房（${total_s:,.0f}）、休闲（${total_r:,.0f}）和食品（${total_f:,.0f}）"
+        f"主导支出，休闲支出几乎与食品持平——这一异常模式表明居民活跃的休闲和社交文化。")
     + fig_block("chart_q3_03_expense_pie.png",
-        f"Fig 3.3: Expense breakdown — the top three categories (Shelter, Recreation, Food) "
-        f"collectively account for the majority of spending. High recreation spending aligns "
-        f"with the social/leisure dominance observed in travel patterns (see Fig 2.10) and "
-        f"venue preferences (see Fig 2.4).")
+        f"图 3.3：支出构成——前三类（住房、休闲、食品）合计占支出的大部分。"
+        f"高休闲支出与出行模式中的社交/休闲主导（见图 2.10）和场所偏好（见图 2.4）一致。")
     + fig_block("chart_q3_04_wage_hist.png",
-        f"Fig 3.4: Hourly wage distribution (range ${js['avg_hourly_rate'].min():.2f}–"
-        f"${js['avg_hourly_rate'].max():.2f}, mean ${js['avg_hourly_rate'].mean():.2f}) — "
-        f"the near-normal distribution suggests a relatively egalitarian wage structure "
-        f"without extreme disparity between the highest and lowest earners.")
+        f"图 3.4：时薪分布（范围 ${js['avg_hourly_rate'].min():.2f}–"
+        f"${js['avg_hourly_rate'].max():.2f}，均值 ${js['avg_hourly_rate'].mean():.2f}）——"
+        f"近正态分布表明工资结构相对平等，最高与最低收入者之间无极端差距。")
     + fig_block("chart_q3_05_wage_box.png",
-        f"Fig 3.5: Wage distribution by employer size — employer scale shows no significant "
-        f"correlation with wage levels. Some of the smallest employers pay premium wages "
-        f"while larger ones pay below average, suggesting compensation is driven by job role "
-        f"rather than employer scale. The education-wage premium is also clearly visible "
-        f"(see Fig 1.4).")
+        f"图 3.5：按雇主规模统计的工资分布——雇主规模与工资水平无显著相关。"
+        f"某些最小雇主支付溢价工资，而较大雇主支付低于平均水平的薪酬，"
+        f"表明薪酬由岗位类型而非雇主规模驱动。教育-工资溢价也清晰可见（见图 1.4）。")
     + fig_block("chart_q3_06_building_types.png",
-        f"Fig 3.6: Building type composition — {bt['count'].sum():,} total buildings split "
-        f"between {econ['residential']} residential ({econ['residential']/bt['count'].sum()*100:.0f}%), "
-        f"{econ['commercial']} commercial ({econ['commercial']/bt['count'].sum()*100:.0f}%), "
-        f"and {econ['schools_n']} schools. The balanced residential-commercial mix supports "
-        f"the community structure identified through network analysis (see Fig 2.2).")
+        f"图 3.6：建筑类型构成——{bt['count'].sum():,} 栋建筑中，"
+        f"{econ['residential']} 栋住宅（{econ['residential']/bt['count'].sum()*100:.0f}%），"
+        f"{econ['commercial']} 栋商业（{econ['commercial']/bt['count'].sum()*100:.0f}%），"
+        f"{econ['schools_n']} 所学校。均衡的住宅-商业混合支持了通过网络分析识别的社区结构"
+        f"（见图 2.2）。")
     + fig_block("chart_q3_07_industry_pie.png",
-        f"Fig 3.7: Employer industry classification — only {classifiable} of {len(js)} "
-        f"employers ({classifiable/len(js)*100:.0f}%) can be classified into specific "
-        f"industries via building-to-venue matching ({rest_count} Restaurant/Food Service, "
-        f"{pub_count} Pub/Hospitality). The remaining {gen_count} ({gen_count/len(js)*100:.0f}%) "
-        f"are undifferentiated commercial enterprises.")
+        f"图 3.7：雇主行业分类——仅 {classifiable}/{len(js)} 家雇主"
+        f"（{classifiable/len(js)*100:.0f}%）可通过建筑-场所匹配分类为具体行业"
+        f"（{rest_count} 家餐饮服务，{pub_count} 家酒吧/酒店）。"
+        f"其余 {gen_count} 家（{gen_count/len(js)*100:.0f}%）为未分化的商业企业。")
     + fig_block("chart_q3_08_industry_wage.png",
-        f"Fig 3.8: Hourly wage rate by industry — wages are similar across identifiable "
-        f"industry categories, with no single industry commanding a significant wage premium. "
-        f"This flat wage structure is consistent with a local service economy serving "
-        f"community needs rather than export-oriented industries.")
+        f"图 3.8：按行业统计的时薪——可识别行业类别的工资相似，"
+        f"没有任何行业享有显著的工资溢价。这种扁平工资结构与服务社区需求的本地服务经济一致，"
+        f"而非出口导向型产业。")
     + fig_block("chart_q3_09_daily_financial.png",
-        f"Fig 3.9: Daily financial flows (7-day rolling average) — Wage Income (green) "
-        f"shows periodic spikes indicating bi-weekly pay cycles. Total Expenses (red) "
-        f"track wage cycles closely with a small lag, while Net Flow (blue dashed) hovers "
-        f"near zero. The synchronized income-expense rhythm suggests limited savings "
-        f"buffers — consistent with a paycheck-driven spending pattern in a micro-enterprise "
-        f"economy.")
+        f"图 3.9：每日现金流（7 天滚动平均）——工资收入（绿色）呈现周期性峰值，"
+        f"表明双周发薪周期。总支出（红色）紧随工资周期，略有滞后，"
+        f"而净流量（蓝色虚线）徘徊于零附近。同步的收入-支出节律表明储蓄缓冲有限——"
+        f"与小微企业经济中基于工资的消费模式一致。")
 )
 
 q3_munzner_framework = f"""<p class=MsoNormal style='background:#f5f7fa;padding:10px 14px;border-left:3px solid #2E4057;margin:8px 0 12px 0;font-size:10.5pt'>
-<b>Analytical Framework (Munzner, 2009).</b>
-<b>Domain Situation:</b> We identified EngageTown's economic structure — the scale and type of businesses, wage-expense flows, and predominant industries.
-<b>Data/Task Abstraction:</b> We abstracted employer records as enterprise-size distributions, financial transactions as flow magnitudes by category, and building inventory as the physical economic footprint — a discovery task aimed at characterizing the type and scale of economic activity.
-<b>Visual Encoding:</b> We used histograms (employer size, wages), bar charts (financial flow, building types), pie charts (expense breakdown, industry classification), and box plots (wages by employer size and industry), and a time-series line chart (daily financial flows).
-<b>Idiom Design:</b> The {q3_img_count} figures (Fig 3.1–3.{q3_img_count}) move from structural economic properties through wage analysis and time series to industry classification, revealing a layered local service economy.
+<b>分析框架（Munzner, 2009）。</b>
+<b>领域情境：</b>识别 EngageTown 的经济结构——企业规模与类型、工资-支出流动及主导产业。
+<b>数据/任务抽象：</b>将雇主记录抽象为企业规模分布，金融交易抽象为按类别的流量规模，建筑存量抽象为物理经济足迹——属于发现任务，旨在刻画经济活动的类型和规模。
+<b>视觉编码：</b>采用直方图（雇主规模、工资）、条形图（现金流、建筑类型）、饼图（支出构成、行业分类）、箱线图（按雇主规模和行业的工资）以及时间序列折线图（每日现金流）。
+<b>图表设计：</b>{q3_img_count} 幅图（图 3.1–3.{q3_img_count}）从经济结构属性经工资分析和时间序列到行业分类，揭示分层的本地服务经济。
 </p>"""
 
-q3_answer_text = f"""<p class=MsoNormal><b>3. Predominant Business Base — A Small-Business Service Economy</b></p>
+q3_answer_text = f"""<p class=MsoNormal><b>3. 主导产业基础——小型服务经济</b></p>
 
 {q3_munzner_framework}
 
-<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>({q3_img_count} figures / ~__WC_Q3__ words — limit: 500 words)</p>
+<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>({q3_img_count} 幅图 / ~__WC_Q3__ 词 — 限制: 500 词)</p>
 
-<p class=MsoNormal>EngageTown's economy is a distributed ecosystem of small-scale enterprises, not a single dominant industry:</p>
+<p class=MsoNormal>EngageTown 的经济是由小微企业构成的分布式生态系统，而非单一主导产业：</p>
 
-<p class=MsoNormal><b>Finding 1: Micro-Enterprise Dominance.</b> All {len(js)} employers are micro-enterprises employing between {econ['min_e']} and {econ['max_e']} people (mean {js['employee_count'].mean():.1f}, median {js['employee_count'].median():.0f}) — there are no factories, corporate headquarters, or large institutions (Fig 3.1). Total employment of {total_j:,} jobs for {len(ps):,} residents yields {total_j/len(ps):.1f} jobs per resident. This micro-enterprise structure mirrors the small-household demographic pattern (see Fig 1.5).</p>
+<p class=MsoNormal><b>发现一：小微企业主导。</b>所有 {len(js)} 家雇主均为小微企业，雇员规模在 {econ['min_e']}–{econ['max_e']} 人之间（均值 {js['employee_count'].mean():.1f}，中位数 {js['employee_count'].median():.0f}）——没有工厂、公司总部或大型机构（图 3.1）。总就业岗位 {total_j:,} 个，服务 {len(ps):,} 名居民，人均 {total_j/len(ps):.1f} 个岗位。这种小微企业结构与小型家庭人口模式相呼应（见图 1.5）。</p>
 
-<p class=MsoNormal><b>Finding 2: Financial Structure.</b> Wages (${total_w:,.0f} annually) are the sole income source (Fig 3.2). The top three expenses — Shelter (${total_s:,.0f}), Recreation (${total_r:,.0f}), and Food (${total_f:,.0f}) — account for the majority of spending (Fig 3.3). Recreation spending nearly rivals food, consistent with weekend recreation activity (see Fig 2.6) and social travel dominance (see Fig 2.10). Daily flows show bi-weekly wage cycles (Fig 3.9).</p>
+<p class=MsoNormal><b>发现二：财务结构。</b>工资（年总额 ${total_w:,.0f}）为唯一收入来源（图 3.2）。前三类支出——住房（${total_s:,.0f}）、休闲（${total_r:,.0f}）和食品（${total_f:,.0f}）——占支出的大部分（图 3.3）。休闲支出几乎与食品持平，与周末休闲活动（见图 2.6）和社交出行主导（见图 2.10）一致。每日现金流显示双周工资周期（图 3.9）。</p>
 
-<p class=MsoNormal><b>Finding 3: Wage Structure.</b> Hourly wages range from ${js['avg_hourly_rate'].min():.2f} to ${js['avg_hourly_rate'].max():.2f} with a mean of ${js['avg_hourly_rate'].mean():.2f} (Fig 3.4). The near-normal distribution suggests a relatively egalitarian wage structure. Employer size shows no significant correlation with wage levels (Fig 3.5) — compensation appears driven by job role rather than employer scale.</p>
+<p class=MsoNormal><b>发现三：工资结构。</b>时薪范围为 ${js['avg_hourly_rate'].min():.2f}–${js['avg_hourly_rate'].max():.2f}，均值 ${js['avg_hourly_rate'].mean():.2f}（图 3.4）。近正态分布表明工资结构相对平等。雇主规模与工资水平无显著相关（图 3.5）——薪酬似乎由岗位类型而非雇主规模驱动。</p>
 
-<p class=MsoNormal><b>Finding 4: Building and Business Mix.</b> The town's {bt['count'].sum():,} buildings are split between {econ['residential']} residential ({econ['residential']/bt['count'].sum()*100:.0f}%), {econ['commercial']} commercial ({econ['commercial']/bt['count'].sum()*100:.0f}%), and {econ['schools_n']} schools (Fig 3.6). With {econ['commercial']} commercial buildings serving {len(js)} employers, there are {econ['commercial'] - len(js)} more commercial spaces than employers.</p>
+<p class=MsoNormal><b>发现四：建筑与商业构成。</b>该镇 {bt['count'].sum():,} 栋建筑中，{econ['residential']} 栋住宅（{econ['residential']/bt['count'].sum()*100:.0f}%），{econ['commercial']} 栋商业（{econ['commercial']/bt['count'].sum()*100:.0f}%），{econ['schools_n']} 所学校（图 3.6）。{econ['commercial']} 栋商业建筑服务 {len(js)} 家雇主，商业空间超出雇主数 {econ['commercial'] - len(js)} 栋。</p>
 
-<p class=MsoNormal><b>Finding 5: Industry Identification.</b> Matching employer locations to known venues classifies only {classifiable} of {len(js)} employers ({classifiable/len(js)*100:.0f}%) — {rest_count} Restaurant/Food Service and {pub_count} Pub/Hospitality. The remaining {gen_count} ({gen_count/len(js)*100:.0f}%) are undifferentiated commercial enterprises (Fig 3.7). Wages are similar across identifiable categories (Fig 3.8), with no single industry commanding a wage premium.</p>
+<p class=MsoNormal><b>发现五：行业识别。</b>将雇主位置与已知场所匹配，仅能分类 {classifiable}/{len(js)} 家雇主（{classifiable/len(js)*100:.0f}%）——{rest_count} 家餐饮服务和 {pub_count} 家酒吧/酒店。其余 {gen_count} 家（{gen_count/len(js)*100:.0f}%）为未分化的商业企业（图 3.7）。各可识别类别的工资相似（图 3.8），没有任何行业享有工资溢价。</p>
 
-<p class=MsoNormal><b>Predominant Business Base.</b> EngageTown's economy is best characterized as a <b>local service ecosystem</b> — small, undifferentiated commercial enterprises supplemented by a visible hospitality sector serving local needs. That {gen_count/len(js)*100:.0f}% of employers cannot be specifically classified is itself a finding: the town's commercial identity is granular and diverse rather than concentrated.</p>
+<p class=MsoNormal><b>主导产业判断。</b>EngageTown 的经济最适合描述为<b>本地服务生态系统</b>——小型、未分化的商业企业辅以服务本地需求的可见酒店业。{gen_count/len(js)*100:.0f}% 的雇主无法具体分类本身就是一项发现：该镇的商业身份是细粒度、多元化的，而非集中化的。</p>
 
-<p class=MsoNormal><b>Rationale.</b> Analysis combines employer records (Jobs.csv, Employers.csv), financial journal aggregations (1.4M transactions), and building inventory cross-referenced with venue tables. Industry classification is limited by the absence of employer sector codes; classification relies on building-to-venue matching.</p>
+<p class=MsoNormal><b>依据。</b>分析结合了雇主记录（Jobs.csv、Employers.csv）、金融日志汇总（140 万笔交易）和与场所表交叉引用的建筑存量。行业分类受限于缺乏雇主行业代码；分类依赖于建筑-场所匹配。</p>
 """
 
 q3_word_count = len(re.sub(r'<[^>]+>', ' ', q3_answer_text).split())
@@ -533,31 +519,31 @@ q4_images_html = (
         f"(see Fig 2.2 and 2.4 for the social activity these venues generate).")
 )
 
-q4_answer_text = f"""<p class=MsoNormal><b>4. EngageTown at a Glance — A One-Page Summary for Residents</b></p>
+q4_answer_text = f"""<p class=MsoNormal><b>4. EngageTown 城市概览——面向居民的一页式摘要</b></p>
 
 <p class=MsoNormal style='background:#f5f7fa;padding:10px 14px;border-left:3px solid #2E4057;margin:8px 0 12px 0;font-size:10.5pt'>
-<b>Analytical Framework (Munzner, 2009).</b>
-<b>Domain Situation:</b> We synthesized the demographic, social, economic, and spatial dimensions of EngageTown into a single integrated overview for residents and town planners — a presentational task requiring information density within a one-page constraint.
-<b>Data/Task Abstraction:</b> Key indicators were abstracted from the preceding analyses: population demographics (Q1), social network metrics (Q2), economic data (Q3), and spatial venue locations — reduced to a compact set of headline statistics, small-multiple charts, and a reference map.
-<b>Visual Encoding:</b> We used an information-graphic (infographic) layout with three thematic sections (Who We Are / How We Live / Our Economy), small-multiple charts (age, venues, expenses) for at-a-glance trends, and a spatial map overlay for geographic reference — leveraging position, size, and color to create visual hierarchy on a single page.
-<b>Idiom Design:</b> The {q4_img_count} figures (Fig 4.1–4.{q4_img_count}) combine small multiples (compact, data-dense, 200px charts) with a full-width reference map, enabling both rapid scanning and spatial orientation. Cross-references connect each section to the detailed analyses in Q1–Q3.
+<b>分析框架（Munzner, 2009）。</b>
+<b>领域情境：</b>将 EngageTown 的人口、社交、经济和空间维度综合为面向居民和城市规划者的单一整合概览——属于展示任务，需在一页约束内实现信息密度最大化。
+<b>数据/任务抽象：</b>从前述分析中提取关键指标：人口统计（Q1）、社交网络指标（Q2）、经济数据（Q3）和场所空间位置——精简为紧凑的标题统计、小多图和参考地图。
+<b>视觉编码：</b>采用信息图布局，包含三个主题板块（我们是谁/我们如何生活/我们的经济）、小多图（年龄、场所、支出）用于一览趋势，以及空间地图叠加用于地理参考——利用位置、尺寸和颜色在单页上创建视觉层次。
+<b>图表设计：</b>{q4_img_count} 幅图（图 4.1–4.{q4_img_count}）结合小多图（紧凑、数据密集、200px 图表）和全宽参考地图，支持快速扫描和空间定位。交叉引用将各板块连接至 Q1–Q3 的详细分析。
 </p>
 
 <div style="border:2px solid #2E4057; border-radius:12px; padding:20px; background:#f8f9fa; margin:10px 0;">
 
-<p class=MsoNormal style='text-align:center'><b style='font-size:14.0pt'>Welcome to EngageTown — Your Community at a Glance</b></p>
+<p class=MsoNormal style='text-align:center'><b style='font-size:14.0pt'>欢迎来到 EngageTown——您的社区一览</b></p>
 
-<p class=MsoNormal style='text-align:center'><b>{len(ps):,} Residents | {ps['age'].mean():.0f} Avg Age | {ps['householdSize'].mean():.1f} Avg Household | {net_metrics['num_edges']:,} Social Connections</b></p>
+<p class=MsoNormal style='text-align:center'><b>{len(ps):,} 名居民 | 平均年龄 {ps['age'].mean():.0f} 岁 | 户均 {ps['householdSize'].mean():.1f} 人 | {net_metrics['num_edges']:,} 条社交连接</b></p>
 
-<p class=MsoNormal><b>WHO WE ARE</b> <span style='color:#888;font-size:9pt'>(see Fig 1.1–Fig 1.9)</span>: EngageTown is home to {len(ps):,} residents, predominantly working-age adults (mean age {ps['age'].mean():.1f}). We live in small households (average {ps['householdSize'].mean():.1f} persons), with about {ps['haveKids'].eq(True).mean()*100:.0f}% of us having children. Our educational backgrounds range from high school to graduate degrees, with most holding high school/college or bachelor's qualifications. We are organized into {ps['interestGroup'].nunique()} evenly-distributed interest groups (A–J), ensuring diverse social mixing across the community.</p>
+<p class=MsoNormal><b>我们是谁</b> <span style='color:#888;font-size:9pt'>（见图 1.1–图 1.9）</span>：EngageTown 拥有 {len(ps):,} 名居民，以劳动年龄人口为主体（平均年龄 {ps['age'].mean():.1f} 岁）。我们居住在小型家庭中（平均 {ps['householdSize'].mean():.1f} 人），约 {ps['haveKids'].eq(True).mean()*100:.0f}% 的家庭有子女。教育背景从高中到研究生不等，多数持有高中/大学或本科学历。我们被组织为 {ps['interestGroup'].nunique()} 个均匀分布的兴趣组（A–J），确保社区内多元化的社交混合。</p>
 
-<p class=MsoNormal><b>HOW WE LIVE</b> <span style='color:#888;font-size:9pt'>(see Fig 2.1–Fig 2.10)</span>: Our social network is vibrant — {net_metrics['num_edges']:,} relationships organized into {net_metrics.get('num_communities', 'N/A')} distinct communities (modularity {net_metrics.get('modularity', 0):.4f}), indicating strong, well-defined social circles. We frequent {len(data.get('pubs', []))} pubs, {len(data.get('restaurants', []))} restaurants, and {len(data.get('schools', []))} schools. Social life follows a natural rhythm: activity rises through the morning, peaks in late afternoon, and shifts toward recreation and eating in the evening. On weekends, we sleep in — activity peaks about 2 hours later, with significantly more time devoted to recreation ({weekend['we_rec_pct']:.0f}% vs {weekend['wd_rec_pct']:.0f}% on weekdays) and far less to work ({weekend['we_work_pct']:.0f}% vs {weekend['wd_work_pct']:.0f}%).</p>
+<p class=MsoNormal><b>我们如何生活</b> <span style='color:#888;font-size:9pt'>（见图 2.1–图 2.10）</span>：我们的社交网络充满活力——{net_metrics['num_edges']:,} 条关系被组织为 {net_metrics.get('num_communities', 'N/A')} 个不同社区（模块度 {net_metrics.get('modularity', 0):.4f}），表明强劲、界限分明的社交圈。我们常去 {len(data.get('pubs', []))} 家酒吧、{len(data.get('restaurants', []))} 家餐厅和 {len(data.get('schools', []))} 所学校。社交生活遵循自然节律：活动在上午攀升，傍晚达到峰值，晚间转向休闲和餐饮。周末我们睡懒觉——活动峰值推迟约 2 小时，休闲时间显著增加（{weekend['we_rec_pct']:.0f}% vs 工作日 {weekend['wd_rec_pct']:.0f}%），工作时间大幅减少（{weekend['we_work_pct']:.0f}% vs {weekend['wd_work_pct']:.0f}%）。</p>
 
-<p class=MsoNormal><b>OUR ECONOMY</b> <span style='color:#888;font-size:9pt'>(see Fig 3.1–Fig 3.8)</span>: Our economy is built on {len(js)} small businesses, each employing {econ['min_e']}–{econ['max_e']} people — a community of local shops, services, and hospitality venues rather than large corporations. Annual wages total ${total_w:,.0f}, with hourly rates ranging from ${js['avg_hourly_rate'].min():.2f} to ${js['avg_hourly_rate'].max():.2f} (average ${js['avg_hourly_rate'].mean():.2f}). Our biggest expenses are shelter (${total_s:,.0f}/year) and recreation (${total_r:,.0f}/year), reflecting both the cost of living and our community's emphasis on leisure and social activities. The town has {econ['commercial']} commercial buildings — more than our {len(js)} registered employers — providing room for economic growth. Our building stock ({bt['count'].sum():,} total) balances residential living ({econ['residential']} units) with commercial activity.</p>
+<p class=MsoNormal><b>我们的经济</b> <span style='color:#888;font-size:9pt'>（见图 3.1–图 3.8）</span>：我们的经济建立在 {len(js)} 家小型企业之上，每家雇用 {econ['min_e']}–{econ['max_e']} 人——这是一个由本地商铺、服务和酒店场所构成的社区，而非大型企业。年工资总额 ${total_w:,.0f}，时薪范围 ${js['avg_hourly_rate'].min():.2f}–${js['avg_hourly_rate'].max():.2f}（平均 ${js['avg_hourly_rate'].mean():.2f}）。最大支出为住房（${total_s:,.0f}/年）和休闲（${total_r:,.0f}/年），反映了生活成本和社区对休闲社交活动的重视。该镇有 {econ['commercial']} 栋商业建筑——超过 {len(js)} 家注册雇主——为经济增长提供空间。建筑存量（{bt['count'].sum():,} 栋）平衡了住宅（{econ['residential']} 栋）与商业活动。</p>
 
-<p class=MsoNormal><b>OUR PLACES:</b> The town map (Fig 4.4) shows the geographic distribution of our key community venues. Pubs and restaurants cluster in distinct commercial/social districts, while schools are strategically dispersed to serve all neighborhoods.</p>
+<p class=MsoNormal><b>我们的场所：</b>城市地图（图 4.4）展示了关键社区场所的地理分布。酒吧和餐厅在不同商业/社交区域集聚，学校则战略性分散以服务所有社区。</p>
 
-<p class=MsoNormal style='text-align:center; margin-top:12pt;'><b>EngageTown is a small, connected, and balanced community — where neighbors know each other, local businesses serve local needs, and social life thrives around shared meals, evenings out, and diverse interest groups.</b></p>
+<p class=MsoNormal style='text-align:center; margin-top:12pt;'><b>EngageTown 是一个小型、互联、均衡的社区——邻里相知，本地企业服务本地需求，社交生活围绕共享餐食、外出夜晚和多元兴趣组蓬勃发展。</b></p>
 
 </div>
 """
@@ -575,7 +561,7 @@ total_images = q1_img_count + q2_img_count + q3_img_count + q4_img_count
 total_words = q1_word_count + q2_word_count + q3_word_count + q4_word_count
 
 # References section
-references_html = f"""<h2>References</h2>
+references_html = f"""<h2>参考文献</h2>
 
 <p class=MsoNormal style='margin-left:0.5in;text-indent:-0.5in'>
 [1] T. Munzner, "A Nested Model for Visualization Design and Validation,"
@@ -598,60 +584,60 @@ DOI: 10.1214/14-AOAS788.
 </p>"""
 
 # Word / image count summary table
-summary_table_html = f"""<h2>Submission Compliance Summary</h2>
+summary_table_html = f"""<h2>提交合规摘要</h2>
 
 <table border='1' style='border-collapse:collapse;margin:10px 0;font-size:10pt;font-family:Calibri,sans-serif'>
 <tr style='background:#2E4057;color:white'>
-<th style='padding:6px 12px;text-align:left'>Question</th>
-<th style='padding:6px 12px;text-align:center'>Figures</th>
-<th style='padding:6px 12px;text-align:center'>Words</th>
-<th style='padding:6px 12px;text-align:center'>Limit</th>
-<th style='padding:6px 12px;text-align:center'>Status</th>
+<th style='padding:6px 12px;text-align:left'>问题</th>
+<th style='padding:6px 12px;text-align:center'>图表数</th>
+<th style='padding:6px 12px;text-align:center'>字数</th>
+<th style='padding:6px 12px;text-align:center'>限制</th>
+<th style='padding:6px 12px;text-align:center'>状态</th>
 </tr>
 <tr>
-<td style='padding:5px 12px'>Q1: Demographics of EngageTown</td>
+<td style='padding:5px 12px'>Q1: EngageTown 人口特征</td>
 <td style='padding:5px 12px;text-align:center'>{q1_img_count}</td>
 <td style='padding:5px 12px;text-align:center'>~{q1_word_count}</td>
-<td style='padding:5px 12px;text-align:center'>500 words / 10 images</td>
-<td style='padding:5px 12px;text-align:center;color:{"green" if q1_word_count <= 500 else "red"}'>{"✓" if q1_word_count <= 500 else "OVER"}</td>
+<td style='padding:5px 12px;text-align:center'>500 词 / 10 幅图</td>
+<td style='padding:5px 12px;text-align:center;color:{"green" if q1_word_count <= 500 else "red"}'>{"✓" if q1_word_count <= 500 else "超限"}</td>
 </tr>
 <tr style='background:#f5f7fa'>
-<td style='padding:5px 12px'>Q2: Social Activities — Ten Patterns</td>
+<td style='padding:5px 12px'>Q2: 社交活动——十项模式</td>
 <td style='padding:5px 12px;text-align:center'>{q2_img_count}</td>
 <td style='padding:5px 12px;text-align:center'>~{q2_word_count}</td>
-<td style='padding:5px 12px;text-align:center'>500 words / 10 images</td>
-<td style='padding:5px 12px;text-align:center;color:{"green" if q2_word_count <= 500 else "red"}'>{"✓" if q2_word_count <= 500 else "OVER"}</td>
+<td style='padding:5px 12px;text-align:center'>500 词 / 10 幅图</td>
+<td style='padding:5px 12px;text-align:center;color:{"green" if q2_word_count <= 500 else "red"}'>{"✓" if q2_word_count <= 500 else "超限"}</td>
 </tr>
 <tr>
-<td style='padding:5px 12px'>Q3: Predominant Business Base</td>
+<td style='padding:5px 12px'>Q3: 主导产业基础</td>
 <td style='padding:5px 12px;text-align:center'>{q3_img_count}</td>
 <td style='padding:5px 12px;text-align:center'>~{q3_word_count}</td>
-<td style='padding:5px 12px;text-align:center'>500 words / 10 images</td>
-<td style='padding:5px 12px;text-align:center;color:{"green" if q3_word_count <= 500 else "red"}'>{"✓" if q3_word_count <= 500 else "OVER"}</td>
+<td style='padding:5px 12px;text-align:center'>500 词 / 10 幅图</td>
+<td style='padding:5px 12px;text-align:center;color:{"green" if q3_word_count <= 500 else "red"}'>{"✓" if q3_word_count <= 500 else "超限"}</td>
 </tr>
 <tr style='background:#f5f7fa'>
-<td style='padding:5px 12px'>Q4: EngageTown at a Glance</td>
+<td style='padding:5px 12px'>Q4: EngageTown 城市概览</td>
 <td style='padding:5px 12px;text-align:center'>{q4_img_count}</td>
 <td style='padding:5px 12px;text-align:center'>~{q4_word_count}</td>
-<td style='padding:5px 12px;text-align:center'>One page</td>
+<td style='padding:5px 12px;text-align:center'>一页</td>
 <td style='padding:5px 12px;text-align:center;color:green'>✓</td>
 </tr>
 <tr style='font-weight:bold;border-top:2px solid #2E4057'>
-<td style='padding:6px 12px'>Total</td>
+<td style='padding:6px 12px'>合计</td>
 <td style='padding:6px 12px;text-align:center'>{total_images}</td>
 <td style='padding:6px 12px;text-align:center'>~{total_words}</td>
-<td style='padding:6px 12px;text-align:center'>2,000 words / 40 images</td>
+<td style='padding:6px 12px;text-align:center'>2,000 词 / 40 幅图</td>
 <td style='padding:6px 12px;text-align:center'></td>
 </tr>
 </table>"""
 
 # Build the complete self-contained HTML document
 html = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VAST Challenge 2022 — Mini-Challenge 1 Answer Sheet</title>
+<title>VAST Challenge 2022 — Mini-Challenge 1 答题卷</title>
 <style>
   @page {{
     size: 8.5in 11in;
@@ -724,16 +710,20 @@ html = f"""<!DOCTYPE html>
 </head>
 <body>
 
-<h1>VAST Challenge 2022 — Mini-Challenge 1 Answer Sheet</h1>
+<h1>VAST Challenge 2022 — Mini-Challenge 1 答题卷</h1>
 
-<p class=MsoNormal><b>Entry Name:</b> EngageTown Analytics</p>
-<p class=MsoNormal><b>Team Members:</b> Claude AI Analyst, Anthropic (PRIMARY)<br>
-Jane Researcher, EngageTown Institute</p>
-<p class=MsoNormal><b>Student Team:</b> NO</p>
-<p class=MsoNormal><b>Tools Used:</b> Python, Streamlit, Plotly, NetworkX, Pandas, fastparquet, Kaleido</p>
-<p class=MsoNormal><b>Approximate Hours Spent:</b> 120 hours</p>
-<p class=MsoNormal><b>Permission to Post Video:</b> YES</p>
-<p class=MsoNormal><b>Video Link:</b> https://example.com/engagetown-demo</p>
+<p class=MsoNormal><b>参赛名称：</b>EngageTown Analytics</p>
+<p class=MsoNormal><b>团队成员：</b><br>
+王甬拓，大数据2302，学号 2302100225<br>
+周晨旭，大数据2302，学号 2302100227<br>
+孙瑞笙，大数据2302，学号 2302100228<br>
+张雅晨，大数据2302，学号 2302100224<br>
+杨哲瑞，大数据2302，学号 2335030118</p>
+<p class=MsoNormal><b>学生团队：</b>是</p>
+<p class=MsoNormal><b>使用工具：</b>Python、Streamlit、Plotly、NetworkX、Pandas、fastparquet、Kaleido</p>
+<p class=MsoNormal><b>大约耗时：</b>120 小时</p>
+<p class=MsoNormal><b>允许发布视频：</b>是</p>
+<p class=MsoNormal><b>视频链接：</b>https://example.com/engagetown-demo</p>
 
 <hr>
 
@@ -743,7 +733,7 @@ Jane Researcher, EngageTown Institute</p>
 
 {q1_images_html}
 
-<div class="section-divider"><span>QUESTION 2</span></div>
+<div class="section-divider"><span>问题 2</span></div>
 
 <!-- ═══════════════════════════════════════════════ Q2 ═══════════════════════════════════════════════ -->
 
@@ -751,7 +741,7 @@ Jane Researcher, EngageTown Institute</p>
 
 {q2_images_html}
 
-<div class="section-divider"><span>QUESTION 3</span></div>
+<div class="section-divider"><span>问题 3</span></div>
 
 <!-- ═══════════════════════════════════════════════ Q3 ═══════════════════════════════════════════════ -->
 
@@ -759,7 +749,7 @@ Jane Researcher, EngageTown Institute</p>
 
 {q3_images_html}
 
-<div class="section-divider"><span>QUESTION 4</span></div>
+<div class="section-divider"><span>问题 4</span></div>
 
 <!-- ═══════════════════════════════════════════════ Q4 ═══════════════════════════════════════════════ -->
 
@@ -771,9 +761,9 @@ Jane Researcher, EngageTown Institute</p>
 
 <!-- ═══════════════════════════════════════════════ SYNTHESIS ═══════════════════════════════════════════ -->
 
-<h2>Synthesis: Cross-Question Comparison Tables</h2>
+<h2>综合分析：跨问题比较表</h2>
 
-<p class=MsoNormal>The following tables synthesize findings across all three analytical questions, revealing how demographic structure (Q1), social behavior (Q2), and economic organization (Q3) form an interconnected portrait of EngageTown.</p>
+<p class=MsoNormal>以下表格综合了三个分析问题的研究发现，揭示了人口结构（Q1）、社交行为（Q2）和经济组织（Q3）如何构成 EngageTown 相互关联的整体画像。</p>
 
 <!-- ── Table 1: Narrative Threads ── -->
 

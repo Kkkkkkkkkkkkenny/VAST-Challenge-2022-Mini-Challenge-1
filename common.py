@@ -19,6 +19,7 @@ import networkx as nx
 from pathlib import Path
 import base64
 from collections import Counter
+from scipy import stats
 
 # ═══════════════════════════════════════════════════════════════════════
 # PATH CONFIGURATION
@@ -59,7 +60,7 @@ def load_data():
 
 
 def load_base_map():
-    """Read BaseMap.png → base64 string, or None if missing."""
+    """Read BaseMap.png -> base64 string, or None if missing."""
     map_path = BASE / "BaseMap.png"
     if map_path.exists():
         with open(map_path, "rb") as f:
@@ -178,20 +179,29 @@ def prepare_hourly_activity(ha):
 
 
 def prepare_employer_industry(data, js):
-    """Classify employers by industry based on building-to-venue overlap.
+    """Classify employers by industry using building co-location + education requirements.
 
-    Returns (js_with_ind, ind_counts) where js_with_ind is the job_summary
-    DataFrame with an 'industry' column added.
+    Classification hierarchy:
+      1. Building co-location with known venues (pub/restaurant) - highest confidence
+      2. Dominant education requirement from Jobs.csv - fills remaining employers:
+         - Graduate          -> Professional Services
+         - Bachelors         -> Business Services
+         - HighSchoolOrCollege -> Retail & Services
+         - Low               -> Basic Services
+
+    Returns (js_with_ind, ind_counts, emp_bld) where js_with_ind is the
+    job_summary DataFrame with an 'industry' column added.
     """
     emp_bld = pd.read_csv(DATA_ROOT / "Datasets" / "Attributes" / "Employers.csv")
     emp_bld = emp_bld[["employerId", "buildingId"]]
 
+    # --- Step 1: venue co-location classification ---
     pubs_df = data.get("pubs", pd.DataFrame(columns=["buildingId"]))
     rest_df = data.get("restaurants", pd.DataFrame(columns=["buildingId"]))
     pub_bids = set(pubs_df["buildingId"]) if len(pubs_df) > 0 else set()
     rest_bids = set(rest_df["buildingId"]) if len(rest_df) > 0 else set()
 
-    def assign_industry(bid):
+    def assign_venue_industry(bid):
         in_pub = bid in pub_bids
         in_rest = bid in rest_bids
         if in_pub and in_rest:
@@ -200,12 +210,41 @@ def prepare_employer_industry(data, js):
             return "Pub/Hospitality"
         elif in_rest:
             return "Restaurant/Food Service"
-        else:
-            return "General Commercial"
+        return None
 
-    emp_bld["industry"] = emp_bld["buildingId"].apply(assign_industry)
+    emp_bld["industry"] = emp_bld["buildingId"].apply(assign_venue_industry)
+
+    # --- Step 2: education-based classification for unclassified employers ---
+    jobs_df = pd.read_csv(DATA_ROOT / "Datasets" / "Attributes" / "Jobs.csv")
+    edu_to_industry = {
+        "Graduate": "Professional Services",
+        "Bachelors": "Business Services",
+        "HighSchoolOrCollege": "Retail & Services",
+        "Low": "Basic Services",
+    }
+
+    # Dominant education requirement per employer (most common among its jobs)
+    emp_edu = (
+        jobs_df.groupby("employerId")["educationRequirement"]
+        .agg(lambda x: x.value_counts().index[0])
+        .reset_index()
+    )
+    emp_edu.columns = ["employerId", "primary_edu_req"]
+    emp_edu["edu_industry"] = emp_edu["primary_edu_req"].map(edu_to_industry)
+
+    # Merge education info into emp_bld
+    emp_bld = emp_bld.merge(
+        emp_edu[["employerId", "edu_industry"]], on="employerId", how="left"
+    )
+
+    # Fill: use education-based industry for employers without venue co-location
+    mask = emp_bld["industry"].isna()
+    emp_bld.loc[mask, "industry"] = emp_bld.loc[mask, "edu_industry"]
+    emp_bld.drop(columns=["edu_industry"], inplace=True)
+
+    # --- Step 3: merge into job_summary ---
     js_with_ind = js.merge(emp_bld[["employerId", "industry"]], on="employerId", how="left")
-    js_with_ind["industry"] = js_with_ind["industry"].fillna("General Commercial")
+    js_with_ind["industry"] = js_with_ind["industry"].fillna("Retail & Services")
 
     ind_counts = js_with_ind["industry"].value_counts()
     return js_with_ind, ind_counts, emp_bld
@@ -354,6 +393,62 @@ def make_q1_edu_balance(ps):
     return fig
 
 
+def make_q1_edu_age_cross(ps):
+    """Education level vs age group cross-analysis stacked bar chart.
+
+    Shows education level composition within each age group as percentages,
+    with absolute counts in hover tooltips.
+    """
+    age_bins = [0, 18, 30, 45, 60, 100]
+    age_labels = ["0-17", "18-29", "30-44", "45-59", "60+"]
+    edu_order = ["Low", "HighSchoolOrCollege", "Bachelors", "Graduate"]
+    edu_labels_map = {"Low": "Low", "HighSchoolOrCollege": "HS/College",
+                      "Bachelors": "Bachelors", "Graduate": "Graduate"}
+
+    ps_c = ps.copy()
+    ps_c["age_group"] = pd.cut(ps_c["age"], bins=age_bins, labels=age_labels)
+    ct = pd.crosstab(ps_c["age_group"], ps_c["educationLevel"])
+    # Ensure all edu levels present
+    for e in edu_order:
+        if e not in ct.columns:
+            ct[e] = 0
+    ct = ct[edu_order]
+    # Normalize to percentages per row
+    ct_pct = ct.div(ct.sum(axis=1), axis=0) * 100
+
+    colors = [PALETTE["secondary"], PALETTE["accent"], PALETTE["green"], PALETTE["red"]]
+
+    fig = go.Figure()
+    for i, edu in enumerate(edu_order):
+        label = edu_labels_map.get(edu, edu)
+        fig.add_trace(go.Bar(
+            x=ct.index.astype(str),
+            y=ct_pct[edu].values,
+            name=label,
+            marker_color=colors[i % len(colors)],
+            text=[f"{v:.0f}%" if v > 0 else "" for v in ct_pct[edu].values],
+            textposition="inside",
+            hovertemplate=(
+                f"<b>{label}</b><br>Age: %{{x}}<br>"
+                "Count: %{customdata}<br>Share: %{y:.1f}%<extra></extra>"
+            ),
+            customdata=ct[edu].values,
+        ))
+
+    fig.update_layout(
+        barmode="stack",
+        title="Education Level Composition by Age Group",
+        xaxis_title="Age Group",
+        yaxis_title="Percentage (%)",
+        yaxis=dict(range=[0, 100]),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02,
+                    xanchor="center", x=0.5),
+        height=420,
+        margin=dict(l=50, r=20, t=60, b=50),
+    )
+    return fig
+
+
 def make_q1_household_size(ps):
     """Household size distribution bar chart."""
     hh_counts = ps["householdSize"].value_counts().sort_index()
@@ -387,102 +482,92 @@ def make_q1_interest_groups(ps):
 
 
 def make_q1_balance_hist(ps):
-    """优化后的平均余额分布直方图（带清晰分割线与精致布局）. """
-    
-    # 1. 使用 px.histogram 初始化，并更换更清爽的白色背景模板
+    """Optimised average balance histogram with clear dividers and polished layout."""
+
     fig = px.histogram(
-        ps, 
-        x="avg_balance", 
+        ps,
+        x="avg_balance",
         nbins=50,
         title="Average Available Balance Distribution",
         color_discrete_sequence=[PALETTE["accent"]],
-        labels={"avg_balance": "Avg Balance ($)", "count": "Frequency"}, # 规范化标签
-        template="plotly_white"  # 👈 换成白底，配合分割线效果更好
+        labels={"avg_balance": "Avg Balance ($)", "count": "Frequency"},
+        template="plotly_white"
     )
-    
-    # 2. 优化 Median 辅助线的位置，避免压在柱子上模糊不清
+
     median_val = ps["avg_balance"].median()
     fig.add_vline(
-        x=median_val, 
-        line_dash="dash", 
+        x=median_val,
+        line_dash="dash",
         line_color=PALETTE["red"],
         line_width=2,
         annotation_text=f"Median: ${median_val:.0f}",
-        annotation_position="top right",  # 👈 移到右侧，防止被左侧高柱子挡住文本
+        annotation_position="top right",
         annotation_font_color=PALETTE["red"]
     )
-    
-    # 3. 核心优化：利用 update_traces 给柱子加上“分割线”
+
     fig.update_traces(
-        marker_line_color='white',     # 👈 柱子的分割线颜色设为白色
-        marker_line_width=1.2,         # 👈 分割线的粗细
-        opacity=0.9,                   # 稍微带一点点透明度，更显高级
+        marker_line_color='white',
+        marker_line_width=1.2,
+        opacity=0.9,
         hovertemplate="<b>Balance Range</b>: %{x}<br><b>Count</b>: %{y}<extra></extra>"
     )
-    
-    # 4. 精细化调整布局与间距
+
     fig.update_layout(
-        height=450,                    # 稍微拉高一点，平衡长尾的视觉比例
-        bargap=0.04,                   # 👈 柱子与柱子之间留出 4% 的微小缝隙，形成自然分割
+        height=450,
+        bargap=0.04,
         title_font=dict(size=18, family="Arial", color="#2C3E50"),
-        hovermode="x unified",         # 鼠标悬停时统一按 X 轴对齐显示
+        hovermode="x unified",
         margin=dict(l=60, r=40, t=60, b=50)
     )
-    
-    # 5. 优化 X 轴的千分位与单位显示
+
     fig.update_xaxes(
-        ticksuffix="", 
-        showgrid=True, 
-        gridcolor="#F0F3F4"            # 添加淡淡的背景网格线
-    )
-    fig.update_yaxes(
-        showgrid=True, 
+        ticksuffix="",
+        showgrid=True,
         gridcolor="#F0F3F4"
     )
-    
+    fig.update_yaxes(
+        showgrid=True,
+        gridcolor="#F0F3F4"
+    )
+
     return fig
 
 def make_q1_joviality_hist(ps):
-    """优化后的 Joviality 分布直方图."""
-    
-    # 1. 使用更现代的默认模板（通常比默认的更好看），并优化标签名称
+    """Optimised Joviality distribution histogram."""
+
     fig = px.histogram(
-        ps, 
-        x="joviality", 
+        ps,
+        x="joviality",
         nbins=40,
         title="Joviality Distribution",
         labels={"joviality": "Joviality Score", "count": "Frequency"},
         color_discrete_sequence=[PALETTE["purple"]],
         template="plotly_white"
     )
-    
-    # 获取统计数据用于辅助线
+
     mean_val = ps["joviality"].mean()
     median_val = ps["joviality"].median()
-    
-    # 2. 添加均值 (Mean) 辅助线（文字在右侧）
+
     fig.add_vline(
-        x=mean_val, 
-        line_dash="dash", 
+        x=mean_val,
+        line_dash="dash",
         line_color="#E74C3C",
         line_width=2,
-        annotation_text=f"Mean: {mean_val:.2f}", 
+        annotation_text=f"Mean: {mean_val:.2f}",
         annotation_position="top right",
         annotation_font_color="#E74C3C"
     )
-    
-    # 3. 添加中位数 (Median) 辅助线（文字在左侧）
+
     fig.add_vline(
-        x=median_val, 
-        line_dash="dot", 
+        x=median_val,
+        line_dash="dot",
         line_color="#2ECC71",
         line_width=2,
-        annotation_text=f"Median: {median_val:.2f}", 
+        annotation_text=f"Median: {median_val:.2f}",
         annotation_position="top left",
         annotation_font_color="#2ECC71"
     )
-    
-    # 4. 精细化调整布局
+
     fig.update_layout(
         height=450,
         bargap=0.03,
@@ -490,15 +575,14 @@ def make_q1_joviality_hist(ps):
         hovermode="x unified",
         margin=dict(l=50, r=50, t=60, b=50)
     )
-    
-    # 5. 美化柱子的描边与悬停提示
+
     fig.update_traces(
         marker_line_color='white',
         marker_line_width=0.5,
         opacity=0.85,
         hovertemplate="<b>Joviality Range</b>: %{x}<br><b>Count</b>: %{y}<extra></extra>"
     )
-    
+
     return fig
 # ═══════════════════════════════════════════════════════════════════════
 # Q2 CHART GENERATION
@@ -508,7 +592,7 @@ def make_q2_degree_distribution(deg_df):
     """Weighted degree distribution log-log histogram.
 
     Uses manually computed log-spaced bins and filters zero-count bins
-    so that all visible bars contain data — avoids invisible bars on log-y scale.
+    so that all visible bars contain data -- avoids invisible bars on log-y scale.
     """
     deg_vals = deg_df[deg_df["weighted_degree"] > 0]["weighted_degree"]
     if len(deg_vals) == 0:
@@ -516,14 +600,14 @@ def make_q2_degree_distribution(deg_df):
         fig.update_layout(title="Weighted Degree Distribution (no data)", height=400)
         return fig
 
-    # Log-spaced bins — essential for power-law degree distributions
+    # Log-spaced bins -- essential for power-law degree distributions
     bins = np.logspace(np.log10(deg_vals.min()), np.log10(deg_vals.max()), 30)
     hist_counts, bin_edges = np.histogram(deg_vals, bins=bins)
 
     # Geometric-mean bin centers look better on log scale
     bin_centers = np.sqrt(bin_edges[:-1] * bin_edges[1:])
 
-    # Drop empty bins — log_y cannot render zero-height bars
+    # Drop empty bins -- log_y cannot render zero-height bars
     mask = hist_counts > 0
     bin_centers = bin_centers[mask]
     hist_counts = hist_counts[mask]
@@ -716,52 +800,46 @@ def make_q2_edu_social(cross):
 
 
 def make_q2_edge_weights(sn):
-    """优化后的边权重分布图（半对数坐标、带精致网格与颜色渐变）."""
-    
-    # 1. 初始化直方图，使用 plotly_white 干净背景
+    """Optimised edge weight distribution chart (semi-log coordinates, polished grid and color gradient)."""
+
     fig = px.histogram(
-        sn, 
-        x="weight", 
+        sn,
+        x="weight",
         nbins=50,
         title="Edge Weight Distribution (Interaction Frequency)",
         color_discrete_sequence=[PALETTE["accent"]],
-        log_y=True,                     # 保持 Y 轴对数缩放
-        template="plotly_white",        # 👈 换成纯白底，让整体更现代
+        log_y=True,
+        template="plotly_white",
         labels={"weight": "Edge Weight (interactions)", "count": "Frequency"}
     )
-    
-    # 2. 核心视觉优化：给柱子加上白边界线，增加层次感
+
     fig.update_traces(
-        marker_line_color='white',       # 👈 增加白色分割线
-        marker_line_width=1.0,           # 分割线粗细
-        opacity=0.9,                     # 微调透明度，减少扎眼感
+        marker_line_color='white',
+        marker_line_width=1.0,
+        opacity=0.9,
         hovertemplate="<b>Interaction Range</b>: %{x}<br><b>Count</b>: %{y}<extra></extra>"
     )
-    
-    # 3. 修复混乱的 Y 轴对数刻度（最关键的一步）
-    # 手动指定整齐的对数刻度值，避免 Plotly 默认生成的 2, 5 杂乱重叠
+
     fig.update_yaxes(
         tickvals=[1, 10, 100, 1000, 10000, 100000],
-        ticktext=["1", "10", "100", "1k", "10k", "100k"],  # 使用精简的千分位符号
+        ticktext=["1", "10", "100", "1k", "10k", "100k"],
         showgrid=True,
-        gridcolor="#EBF5FB"              # 淡淡的蓝色网格线
+        gridcolor="#EBF5FB"
     )
-    
-    # 4. 优化 X 轴网格线
+
     fig.update_xaxes(
         showgrid=True,
         gridcolor="#F2F4F4"
     )
-    
-    # 5. 调整布局与间距
+
     fig.update_layout(
-        height=450,                      # 稍微拉高
-        bargap=0.03,                     # 👈 让柱子之间保留极微小的间隙
+        height=450,
+        bargap=0.03,
         title_font=dict(size=18, family="Arial", color="#2C3E50"),
-        hovermode="x unified",           # 悬停时统一按 X 轴显示
+        hovermode="x unified",
         margin=dict(l=60, r=40, t=60, b=50)
     )
-    
+
     return fig
 
 
@@ -785,6 +863,124 @@ def make_q2_travel_spending(tp):
                  text=tp["total_spent"].round(0))
     fig.update_layout(height=400, showlegend=False, xaxis_tickangle=-30)
     return fig
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Q2 STATISTICAL TESTS
+# ═══════════════════════════════════════════════════════════════════════
+
+def compute_peak_hour_stats(ha, mode_cols):
+    """Compute peak hour statistics with confidence intervals.
+
+    Returns dict with peak_hour, ci_lower, ci_upper, peak_value, trough_hour.
+    """
+    # Calculate total activity per hour across all days
+    hourly_total = ha.groupby("hour_num")["total_mode"].sum()
+
+    # Find peak hour
+    peak_hour = int(hourly_total.idxmax())
+    peak_value = hourly_total.max()
+
+    # Find trough hour
+    trough_hour = int(hourly_total.idxmin())
+    trough_value = hourly_total.min()
+
+    # Bootstrap confidence interval for peak hour
+    # Group by day and hour, then resample
+    daily_hourly = ha.groupby(["dayofweek", "hour_num"])["total_mode"].sum().reset_index()
+
+    # For each hour, compute mean and std across days
+    hour_stats = daily_hourly.groupby("hour_num")["total_mode"].agg(["mean", "std", "count"])
+
+    # 95% CI for peak hour using t-distribution
+    peak_mean = hour_stats.loc[peak_hour, "mean"]
+    peak_std = hour_stats.loc[peak_hour, "std"]
+    peak_n = hour_stats.loc[peak_hour, "count"]
+
+    if peak_n > 1:
+        t_val = stats.t.ppf(0.975, df=peak_n - 1)
+        ci_margin = t_val * peak_std / np.sqrt(peak_n)
+        ci_lower = peak_mean - ci_margin
+        ci_upper = peak_mean + ci_margin
+    else:
+        ci_lower = peak_mean
+        ci_upper = peak_mean
+
+    return {
+        "peak_hour": peak_hour,
+        "peak_value": peak_value,
+        "trough_hour": trough_hour,
+        "trough_value": trough_value,
+        "ci_lower": ci_lower,
+        "ci_upper": ci_upper,
+        "peak_mean": peak_mean,
+    }
+
+
+def compute_age_social_significance(cross):
+    """Test statistical significance of age-social connectivity relationship.
+
+    Returns dict with correlation, p_value, and LOWESS R².
+    """
+    # Filter out zero-degree nodes for meaningful analysis
+    df = cross[cross["weighted_degree"] > 0].copy()
+
+    if len(df) < 10:
+        return {"correlation": 0, "p_value": 1, "r_squared": 0}
+
+    # Spearman correlation (non-parametric, robust to outliers)
+    corr, p_val = stats.spearmanr(df["age"], df["weighted_degree"])
+
+    # Polynomial regression R² (test for non-linear relationship)
+    # Fit quadratic: degree ~ age + age²
+    age_poly = np.polyfit(df["age"], df["weighted_degree"], 2)
+    predicted = np.polyval(age_poly, df["age"])
+    ss_res = np.sum((df["weighted_degree"] - predicted) ** 2)
+    ss_tot = np.sum((df["weighted_degree"] - df["weighted_degree"].mean()) ** 2)
+    r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+
+    return {
+        "correlation": corr,
+        "p_value": p_val,
+        "r_squared": r_squared,
+    }
+
+
+def compute_community_modularity_test(G, communities):
+    """Test if community structure is significant vs random.
+
+    Returns dict with modularity, z_score, and significance.
+    """
+    mod = nx.community.modularity(G, communities, weight="weight")
+
+    # Compare to random networks
+    n_random = 100
+    random_mods = []
+    for _ in range(n_random):
+        # Create random graph with same degree sequence
+        G_random = nx.configuration_model([d for _, d in G.degree()])
+        G_random = nx.Graph(G_random)  # Remove parallel edges
+        G_random.remove_edges_from(nx.selfloop_edges(G_random))
+
+        try:
+            comms_random = nx.community.louvain_communities(G_random, weight="weight")
+            mod_random = nx.community.modularity(G_random, comms_random, weight="weight")
+            random_mods.append(mod_random)
+        except Exception:
+            continue
+
+    if random_mods:
+        z_score = (mod - np.mean(random_mods)) / np.std(random_mods) if np.std(random_mods) > 0 else 0
+        significance = "significant" if z_score > 1.96 else "not significant"
+    else:
+        z_score = 0
+        significance = "unable to test"
+
+    return {
+        "modularity": mod,
+        "z_score": z_score,
+        "significance": significance,
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -830,56 +1026,51 @@ def make_q3_expense_pie(fin):
 def make_q3_wage_hist(js):
     """Hourly wage distribution histogram."""
     fig = px.histogram(
-        js, 
-        x="avg_hourly_rate", 
+        js,
+        x="avg_hourly_rate",
         nbins=35,
         title="Average Hourly Rate Distribution",
         labels={"avg_hourly_rate": "Hourly Rate ($)", "count": "Count"},
         color_discrete_sequence=[PALETTE["green"]],
-        template="plotly_white"  # 也可以加上，和之前的图风格统一
+        template="plotly_white"
     )
-    
-    # 获取统计值
+
     mean_val = js["avg_hourly_rate"].mean()
     median_val = js["avg_hourly_rate"].median()
-    
-    # 1. 均值线：文字放在辅助线右侧
+
     fig.add_vline(
-        x=mean_val, 
+        x=mean_val,
         line_dash="dash",
         line_color=PALETTE["red"],
         line_width=2,
         annotation_text=f"Mean: ${mean_val:.2f}",
-        annotation_position="top right",  # 文字在辅助线右上方
+        annotation_position="top right",
         annotation_font_color=PALETTE["red"]
     )
-    
-    # 2. 中位数线：文字放在辅助线左侧
+
     fig.add_vline(
-        x=median_val, 
+        x=median_val,
         line_dash="dot",
         line_color=PALETTE["accent"],
         line_width=2,
         annotation_text=f"Median: ${median_val:.2f}",
-        annotation_position="top left",  # 文字在辅助线左上方
+        annotation_position="top left",
         annotation_font_color=PALETTE["accent"]
     )
-    
-    # 3. 优化整体布局，和之前的图保持一致
+
     fig.update_layout(
         height=400,
         bargap=0.03,
         title_font=dict(size=18, family="Arial", color="#2C3E50"),
         margin=dict(l=50, r=50, t=60, b=50)
     )
-    
-    # 4. 美化柱子细节（和之前的风格统一）
+
     fig.update_traces(
         marker_line_color='white',
         marker_line_width=0.5,
         opacity=0.85
     )
-    
+
     return fig
 
 def make_q3_wage_box(js):
@@ -911,7 +1102,8 @@ def make_q3_industry_pie(js_with_ind, js):
     ind_counts = js_with_ind["industry"].value_counts()
     fig = px.pie(values=ind_counts.values, names=ind_counts.index,
                  title=f"Employer Industry Classification ({len(js)} employers)",
-                 color_discrete_sequence=[PALETTE["primary"], PALETTE["accent"], PALETTE["teal"]])
+                 color_discrete_sequence=[PALETTE["primary"], PALETTE["accent"], PALETTE["teal"],
+                                          PALETTE["green"], PALETTE["purple"], PALETTE["pink"]])
     fig.update_traces(textposition="inside", textinfo="percent+label+value")
     fig.update_layout(height=400)
     return fig
@@ -922,7 +1114,8 @@ def make_q3_industry_wage(js_with_ind):
     fig = px.box(js_with_ind, x="industry", y="avg_hourly_rate", color="industry",
                  title="Hourly Rate Distribution by Industry",
                  labels={"avg_hourly_rate": "Average Hourly Rate ($)", "industry": ""},
-                 color_discrete_sequence=[PALETTE["primary"], PALETTE["accent"], PALETTE["teal"]])
+                 color_discrete_sequence=[PALETTE["primary"], PALETTE["accent"], PALETTE["teal"],
+                                          PALETTE["green"], PALETTE["purple"], PALETTE["pink"]])
     fig.update_layout(height=400, showlegend=False)
     return fig
 
@@ -1026,80 +1219,76 @@ def make_venue_map(base_map, data):
 
 def make_q2_daily_activity_trends(daily_activity, mode_cols):
     """
-    Daily activity trends by mode — 7-day rolling average line chart.
-    已修复 X 轴时间戳混乱 Bug，并完成了视觉美化。
+    Daily activity trends by mode -- 7-day rolling average line chart.
     """
     df = daily_activity.copy()
     df = df.sort_values("day")
-    
-    # 🌟 修复手段 A：将 day 列转换为字符串，断绝 Plotly 把它当成秒数的念头
+
     df["day_str"] = df["day"].astype(str)
-    
+
     fig = go.Figure()
     mode_labels = {
         "mode_AtHome": "At Home", "mode_AtWork": "At Work",
         "mode_Transport": "Transport", "mode_AtRecreation": "Recreation",
         "mode_AtRestaurant": "Eating"
     }
-    
-    # 调配一组更现代柔和、对比鲜明的折线配色
+
     colors = [
-        "#2C3E50",  # At Home (深灰蓝，代表沉稳的主基调)
-        "#E74C3C",  # At Work (活力红)
-        "#E67E22",  # Transport (温暖橙)
-        "#2ECC71",  # Recreation (生态绿)
-        "#9B59B6"   # Eating (优雅紫)
+        "#2C3E50",
+        "#E74C3C",
+        "#E67E22",
+        "#2ECC71",
+        "#9B59B6"
     ]
-    
+
     for i, col in enumerate(mode_cols):
         if col in df.columns:
             smoothed = df[col].rolling(window=7, min_periods=1).mean()
             label = mode_labels.get(col, col.replace("mode_", ""))
-            
+
             fig.add_trace(go.Scatter(
-                x=df["day_str"],       # 👈 使用转换后的字符串 X 轴
-                y=smoothed, 
-                mode="lines", 
+                x=df["day_str"],
+                y=smoothed,
+                mode="lines",
                 name=label,
-                line=dict(width=2.0, color=colors[i % len(colors)]), # 稍微加粗折线
+                line=dict(width=2.0, color=colors[i % len(colors)]),
                 hovertemplate=f"<b>{label}</b><br>Day %{{x}}<br>Count: %{{y:.0f}}<extra></extra>"
             ))
-            
+
     fig.update_layout(
         title="Daily Activity Trends by Mode (7-day rolling avg)",
-        xaxis_title="Day", 
+        xaxis_title="Day",
         yaxis_title="Activity Count",
-        height=450,                             # 稍微拉高，更显大气
-        template="plotly_white",                # 👈 改为干净的纯白背景模板
-        hovermode="x unified",                  # 👈 悬停时，一把标尺对齐显示所有线的数据
+        height=450,
+        template="plotly_white",
+        hovermode="x unified",
         legend=dict(
-            orientation="h", 
-            yanchor="bottom", 
-            y=1.05,                             # 稍微拉高图例，避免紧贴标题
-            xanchor="center", 
+            orientation="h",
+            yanchor="bottom",
+            y=1.05,
+            xanchor="center",
             x=0.5
         ),
-        margin=dict(l=60, r=30, t=80, b=50)     # 重新调整四周留白
+        margin=dict(l=60, r=30, t=80, b=50)
     )
-    
-    # 🌟 修复手段 B：双重保险，显式强制 X 轴为线性或类目轴，并优化网格线
+
     fig.update_xaxes(
-        type="category",                        # 强制作为类目处理，防止任何时间转化
-        showgrid=True, 
+        type="category",
+        showgrid=True,
         gridcolor="#F2F4F4",
-        nticks=20                               # 稀释 X 轴标签，防止 Day 1, Day 2 一大堆挤在一起
+        nticks=20
     )
-    
+
     fig.update_yaxes(
-        showgrid=True, 
-        gridcolor="#F2F4F4"                     # 淡淡的横向网格线
+        showgrid=True,
+        gridcolor="#F2F4F4"
     )
-    
+
     return fig
 
 
 def make_q3_daily_financial_timeseries(daily_financial):
-    """Daily net financial flows — line chart showing income vs expense cycles."""
+    """Daily net financial flows -- line chart showing income vs expense cycles."""
     df = daily_financial.copy()
     # Separate income (Wage) and expenses
     df_wage = df[df["category"] == "Wage"].groupby("day")["total_amount"].sum().reset_index()
@@ -1192,7 +1381,7 @@ def make_q2_hourly_density_animation(ha, mode_cols, output_path):
         bars = ax.bar(labels, values, color=colors, edgecolor="white", linewidth=0.5)
         ax.set_ylim(0, max_val)
         ax.set_ylabel("Avg Activity Records", fontsize=10)
-        ax.set_title(f"Activity Density by Mode — {hour:02d}:00", fontsize=13, fontweight="bold")
+        ax.set_title(f"Activity Density by Mode -- {hour:02d}:00", fontsize=13, fontweight="bold")
 
         # Value labels above bars
         for bar, val in zip(bars, values):

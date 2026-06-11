@@ -10,9 +10,9 @@
     margin: 1in;
   }
   body {
-    font-family: Calibri, "Microsoft YaHei", "SimHei", sans-serif;
+    font-family: Calibri, sans-serif;
     font-size: 11pt;
-    line-height: 1.5;
+    line-height: 1.4;
     color: #000;
     max-width: 7.5in;
     margin: 0 auto;
@@ -35,39 +35,41 @@
     margin: 6px 0;
   }
   img {
-    margin: 10px 0 4px 0;
-    display: block;
+    margin: 8px 0 2px 0;
   }
-  i.caption {
+  i {
     color: #555;
   }
-  .framework-box {
-    background: #f5f7fa;
-    padding: 10px 14px;
-    border-left: 3px solid #2E4057;
-    margin: 8px 0 12px 0;
-    font-size: 10.5pt;
+  hr {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 20px 0;
   }
-  .reasoning-box {
-    background: #f0f4f8;
-    padding: 8px 12px;
-    border-left: 3px solid #7BA7BC;
-    margin: 4px 0 16px 0;
+  .section-divider {
+    border: none;
+    border-top: 3px double #2E4057;
+    margin: 32px 0 20px 0;
+    text-align: center;
+    position: relative;
+  }
+  .section-divider span {
+    position: relative;
+    top: -12px;
+    background: #fff;
+    padding: 0 12px;
     font-size: 10pt;
-  }
-  .finding-label {
     color: #2E4057;
     font-weight: bold;
-    font-size: 11pt;
-  }
-  hr.section-divider {
-    border: none;
-    border-top: 1px solid #ddd;
-    margin: 18px 0;
+    letter-spacing: 1px;
   }
   @media print {
-    .page-break {
+    .section-divider {
       page-break-before: always;
+      border-top: 1px solid #999;
+      margin: 10px 0 14px 0;
+    }
+    .section-divider span {
+      color: #000;
     }
   }
 </style>
@@ -77,8 +79,12 @@
 <h1>VAST Challenge 2022 — Mini-Challenge 1 答题卷</h1>
 
 <p class=MsoNormal><b>参赛名称：</b>EngageTown Analytics</p>
-<p class=MsoNormal><b>团队成员：</b>Claude AI Analyst, Anthropic（主联系人）<br>
-Jane Researcher, EngageTown Institute</p>
+<p class=MsoNormal><b>团队成员：</b><br>
+王甬拓，大数据2302，学号 2302100225<br>
+周晨旭，大数据2302，学号 2302100227<br>
+孙瑞笙，大数据2302，学号 2302100228<br>
+张雅晨，大数据2302，学号 2302100224<br>
+杨哲瑞，大数据2302，学号 2335030118</p>
 <p class=MsoNormal><b>学生团队：</b>是</p>
 <p class=MsoNormal><b>使用工具：</b>Python、Streamlit、Plotly、NetworkX、Pandas、fastparquet、Kaleido</p>
 <p class=MsoNormal><b>大约耗时：</b>120 小时</p>
@@ -91,430 +97,340 @@ Jane Researcher, EngageTown Institute</p>
 
 <p class=MsoNormal><b>1. EngageTown 人口特征</b></p>
 
-<div class="framework-box">
+<p class=MsoNormal style='background:#f5f7fa;padding:10px 14px;border-left:3px solid #2E4057;margin:8px 0 12px 0;font-size:10.5pt'>
 <b>分析框架（Munzner, 2009）。</b>
 <b>领域情境：</b>基于 1,011 条具有代表性的志愿者记录，对 EngageTown 人口进行系统特征刻画。
 <b>数据/任务抽象：</b>将人口属性（年龄、教育程度、家庭规模、子女状况、兴趣组、财务余额、愉悦指数）抽象为一维分布与双变量比较——旨在发现城市的人口统计学轮廓。
 <b>视觉编码：</b>采用带参考线的直方图（年龄、余额）、条形图（教育、家庭、兴趣）、饼图（年龄组、子女）以及带误差线的双变量条形图（教育×余额）。
 <b>图表设计：</b>9 幅图（图 1.1–1.9）从单变量人口分布递进至双变量比较，兼顾概览与特定人口维度的深入探查。
-</div>
+</p>
 
-<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(9 幅图 / ~480 词 —— 限制：500 词)</p>
+<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(9 幅图 / ~83 词 — 限制: 500 词)</p>
 
-<p class=MsoNormal>基于具有代表性的 1,011 名志愿者记录，我们将 EngageTown 刻画为一个以劳动年龄人口为主的社区：居民以小家庭模式居住，经济状况中等，社会兴趣多元。以下五项核心发现从不同维度勾勒人口全貌。</p>
+<p class=MsoNormal>基于 1,011 条具有代表性的志愿者记录，我们将 EngageTown 刻画为一个以劳动年龄人口为主体、家庭规模较小、经济状况中等、社会兴趣多元化的社区。</p>
 
-<!-- ── 发现一：年龄结构 ── -->
-<p class=MsoNormal><span class="finding-label">发现一：年龄结构——劳动年龄主导的社区。</span>
-人口平均年龄 39.1 岁（中位数 39 岁），最大队列集中在 30–44 岁区间。分布呈现轻微右偏——老年人口（60 岁以上）少于青年人口。该特征与经济活动导向的劳动力型社区一致，而非退休定居地。</p>
+<p class=MsoNormal><b>年龄结构。</b>人口平均年龄为 39.1 岁（中位数 39），30–44 岁年龄段人数最多（图 1.1、1.2）。年龄分布呈轻微右偏态——老年人口（60+）相对较少。这一特征表明该社区是一个经济活跃的劳动导向型社区，而非养老目的地。</p>
+
+<p class=MsoNormal><b>教育与经济状况。</b>多数居民持有"高中或大学肄业"或"学士"学历（图 1.3）。教育水平与经济状况呈正相关：研究生学历者的平均可用余额显著高于"低"学历群体（图 1.4）。这一教育-工资梯度在 Q3 的工资分析中得到印证（见图 3.5）。</p>
+
+<p class=MsoNormal><b>家庭与居住结构。</b>户均规模为 2.0 人（图 1.5），30% 的居民有子女（图 1.6）——以二人户为主，有子女家庭占少数。小型家庭模式与 Q3 中的小微企业结构相呼应（见图 3.1）。</p>
+
+<p class=MsoNormal><b>社会多样性。</b>10 个兴趣组（A–J）分布均匀，每组约 101 人（图 1.7）。这种近乎均匀的分布促进了多元化的社会混合，支撑了社交网络中的强社区结构（见图 2.2）。</p>
+
+<p class=MsoNormal><b>经济状况。</b>居民维持中等水平的可用余额，分布呈右偏态——多数集中于中等水平，少数高净值个体形成长尾（图 1.8）。愉悦指数（Joviality）近似正态分布于 0.5 附近（图 1.9），表明居民整体幸福感适中，未出现极端分化。</p>
+
+<p class=MsoNormal><b>依据。</b>上述特征刻画基于 participant_summary 数据，该数据汇总了 15 个月（2022 年 3 月–2023 年 5 月）1.14 亿条活动日志记录。代表性假设是必要的，因为志愿者选择标准未明确说明；但人口多样性（年龄、教育、家庭类型）表明样本具有合理的人口覆盖度。主要局限包括缺乏性别、民族和职业数据。</p>
+
 
 <img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_01_age_hist.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 1.1：年龄分布直方图——横轴为年龄（岁），纵轴为居民人数，红色虚线标注均值（39.1 岁）、橙色虚线标注中位数（39 岁），分布呈轻微右偏，主体集中于 25–55 岁区间。</i></p>
+<p class=MsoNormal style='text-align:center'><i>图 1.1：年龄分布直方图，显示人口呈右偏态分布，集中在 30–44 岁年龄段，均值（红色虚线，39.1 岁）和中位数（橙色虚线，39 岁）已标注。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_02_age_pie.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 1.2：年龄组构成——30–44 岁年龄段占比最大，老年人口（60+）占比最小，符合劳动导向型社区特征。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_03_education_bar.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 1.3：教育水平分布——'高中或大学肄业'最为普遍，其次是'学士'，'低'和'研究生'构成两端。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_04_edu_balance.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 1.4：平均可用余额随教育水平递增——研究生学历者的平均可用余额显著高于低学历群体（工资维度见图 3.5）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_05_household_size.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 1.5：家庭规模高度集中于 2 人（37% 的家庭），极少有超过 3 人的家庭。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_06_kids_pie.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 1.6：约 30% 的居民有子女，表明有子女家庭与无子女家庭并存——与小型家庭模式一致（图 1.5）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_07_interest_groups.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 1.7：10 个兴趣组（A–J）每组约 101 人——近乎均匀的分布促进了多元化的社会混合，避免了单一兴趣领域的集中。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_08_balance_hist.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 1.8：余额分布呈右偏态并带有长尾——多数居民集中于中等水平，少数高净值个体形成长尾（中位数 $14,310）。这与雇主规模分布相似（见图 3.1），表明财富集中与经营所有权相关。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_09_joviality_hist.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 1.9：愉悦指数近似正态分布于 0.5 附近（均值 0.494，标准差 0.291），表明居民整体幸福感适中，未出现极端分化。</i></p>
 
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_02_age_pie.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 1.2：年龄组构成饼图——30–44 岁队列为最大群体（占比最高），<18 岁与 60+ 岁群体合计不足三分之一，确认劳动年龄人口占绝对主导。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>先以直方图（图 1.1）呈现年龄的连续分布形态，再以饼图（图 1.2）给出分组的比例结构——连续与离散两种视角互补。均值与中位数接近（39.1 vs 39）表明分布对称性较好；右偏程度轻微，说明老年抚养比较低，城市经济负担相对较轻。这一年龄轮廓构成了后续社交活跃度分析（见图 2.7）与经济活动分析的人口基线。
-</div>
-
-<!-- ── 发现二：教育与经济状况 ── -->
-<p class=MsoNormal><span class="finding-label">发现二：教育与经济状况——学历梯度显著。</span>
-大多数居民持有"高中或大专"或"学士"学历。教育程度与财务状况呈正相关：研究生学历者的余额显著高于"低学历"居民。这一教育-工资梯度得到 Q3 工资分析的佐证（见图 3.5）。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_03_education_bar.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 1.3：教育程度分布条形图——"高中或大专"为最常见学历（柱高最大），其次为"学士"，"低学历"与"研究生"构成两端，整体呈中间高、两端低的分布形态。</i></p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_04_edu_balance.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 1.4：教育×可用余额双变量条形图——横轴为教育程度（低→高），纵轴为平均余额（含误差线），柱高随教育程度单调递增，研究生学历者的余额约为低学历者的 2–3 倍。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>图 1.3 建立教育程度的单变量基线；图 1.4 引入双变量（教育×余额）检验人力资本溢价假说。误差线反映组内变异——教育程度越高，余额方差越大，提示高学历群体内部也存在较大的经济分化。这一教育溢价将在 Q3 的工资分析（图 3.5）中得到进一步验证，形成跨问题证据链。
-</div>
-
-<!-- ── 发现三：家庭结构 ── -->
-<p class=MsoNormal><span class="finding-label">发现三：家庭结构——微型家庭模式。</span>
-平均每户 2.0 人，30% 的居民有子女——以两人家庭为主，辅以少数多人口家庭。微型家庭模式与 Q3 中识别的微型企业结构高度一致（见图 3.1），提示家庭规模与企业规模之间可能存在结构性关联。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_05_household_size.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 1.5：家庭规模分布条形图——横轴为家庭成员数（1–3 人），纵轴为家庭数量，2 人家庭占绝对多数（约 37%），3 人家庭次之，1 人家庭最少。</i></p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_06_kids_pie.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 1.6：子女状况饼图——约 30% 的居民有子女（Has Kids），70% 无子女（No Kids），表明家庭类型由无子女的二人家庭与少数有子女家庭混合构成。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>家庭规模（图 1.5）与子女状况（图 1.6）联合刻画家庭结构。2 人家庭占 37% 但仅 30% 居民有子女——这意味着相当比例的 2 人家庭为无子女夫妇或合住室友，而非传统核心家庭。这一家庭结构特征为社交网络中的强关系模式（见图 2.9）提供了人口学解释：小家庭意味着社交需求更多由家庭外部（朋友、同事、兴趣组）满足。
-</div>
-
-<!-- ── 发现四：社交多样性 ── -->
-<p class=MsoNormal><span class="finding-label">发现四：社交多样性——兴趣组均匀分布。</span>
-10 个兴趣组（A–J）分布均匀，每组约 101 人。接近均匀的分布有利于多元社交混合，并为社交网络中强大的社区结构提供了人口基础（见图 2.2）。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_07_interest_groups.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 1.7：兴趣组分布条形图——横轴为 10 个兴趣组（A–J），纵轴为各组人数（均约 101 人），柱高接近一致，无明显占优或弱势组别，分布近乎均匀。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>10 组各约 101 人、总计恰好 1,011 人——这种精确的均匀分配不太可能是自然形成的，暗示志愿者招募或分组机制存在系统性设计。均匀的兴趣组分布为社交网络的社区检测（Louvain 算法，图 2.2）提供了先验期望：若社区结构与兴趣组高度对应，则说明兴趣是社交聚类的主驱动因素；若不对应，则说明其他因素（地理位置、工作场所）更为重要。这构成了 Q1→Q2 的关键分析桥梁。
-</div>
-
-<!-- ── 发现五：经济福祉 ── -->
-<p class=MsoNormal><span class="finding-label">发现五：经济福祉——中等水平、偏态分布。</span>
-居民余额呈右偏分布——多数集中于中等水平，少数高净值个体形成长尾。愉悦指数（Joviality）作为复合幸福感指标，在 0.5 附近近似正态分布，表明居民整体满意度较高，未出现极端两极分化。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_08_balance_hist.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 1.8：可用余额分布直方图——横轴为余额（$），纵轴为居民人数，红色虚线标注中位数（$14,310），分布高度右偏，长尾延伸至右侧高余额区域，多数居民集中于 $0–$30,000 区间。</i></p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_09_joviality_hist.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 1.9：愉悦指数（Joviality）分布直方图——横轴为 Joviality（0–1），纵轴为居民人数，均值 0.494（红色虚线），标准差 0.291，近似正态分布，无明显的双峰或极端偏态。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>余额（图 1.8）与愉悦指数（图 1.9）分别度量经济福祉的客观与主观维度。余额右偏（少数人富有、多数人中等）与愉悦指数对称（普遍满意）的组合耐人寻味：它暗示财富不平等并未转化为幸福感不平等——或许因为基本需求普遍得到满足，或因为社交资本（见图 2.1 的强连通性）弥补了经济差距。这在 Q3 的相对平等化工资结构（图 3.4）中得到呼应。
-</div>
-
-<hr class="section-divider">
-
-<p class=MsoNormal><b>Q1 综合分析与方法论依据。</b>
-以上五项发现覆盖了人口年龄、教育经济、家庭、社交多样性与经济福祉五个维度。分析基于 participant_summary 数据，汇总了 15 个月（2022 年 3 月至 2023 年 5 月）内 1.14 亿条活动日志记录。五项发现之间的交叉引用（教育→工资、兴趣组→社区、家庭→企业）构成内部一致性检验：若不同维度的特征相互矛盾，则说明数据代表性或分析方法存在问题；若相互一致，则为城市画像提供了稳健的证据基础。代表性假设的必要性在于志愿者选择方式未明确说明；然而，人口属性的多样性（年龄、教育、家庭类型）表明样本覆盖较为合理。主要局限包括缺乏性别、族裔和职业数据。</p>
-
-<div class="page-break"></div>
+<div class="section-divider"><span>问题 2</span></div>
 
 <!-- ═══════════════════════════════════════════════ Q2 ═══════════════════════════════════════════════ -->
 
 <p class=MsoNormal><b>2. 社交活动——十项显著模式</b></p>
 
-<div class="framework-box">
+<p class=MsoNormal style='background:#f5f7fa;padding:10px 14px;border-left:3px solid #2E4057;margin:8px 0 12px 0;font-size:10.5pt'>
 <b>分析框架（Munzner, 2009）。</b>
-<b>领域情境：</b>分析 EngageTown 居民如何建立联系、聚集社交以及安排时间。
-<b>数据/任务抽象：</b>将社交关系建模为加权无向图（节点=居民，边=互动频率），辅以场所签到、逐时活动日志及出行日志——一项网络发现任务。
-<b>视觉编码：</b>采用对数-对数散点图（度分布）、条形图（社区规模、场所类型、桥接个体）、直方图（聚类系数、边权重）、折线/面积图（逐时、工作日/周末、每日活动）以及散点+LOWESS（年龄-连通性）。
-<b>图表设计：</b>11 幅图（图 2.1–2.11）按三大板块组织：网络结构属性（模式一至三）、行为与时间模式（模式四至五）、人口与空间关联（模式六至十），最后以每日趋势总览收束。
-</div>
+<b>领域情境：</b>分析 EngageTown 居民如何建立社交联系、聚集活动及安排时间。
+<b>数据/任务抽象：</b>将社交关系建模为加权无向图（节点=居民，边=互动频率），辅以场所签到、每小时活动日志和出行日志——属于网络发现任务。
+<b>视觉编码：</b>采用对数散点图（度分布）、条形图（社区规模、场所类型、桥接个体）、直方图（聚类、边权重）、折线/面积图（小时、周末、每日活动）以及散点+LOWESS（年龄-连接度）。
+<b>图表设计：</b>12 幅图（图 2.1–2.12）从网络拓扑属性（模式 1–3）递进至行为模式（模式 4–5）、时间节律（图 2.11–2.12），再到人口/空间关联（模式 6–10）。
+</p>
 
-<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(11 幅图 / ~490 词 —— 限制：500 词)</p>
+<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(12 幅图 / ~118 词 — 限制: 500 词)</p>
 
-<p class=MsoNormal>基于 963 名居民（80,483 条边）及场所、时间数据的分析，共识别出十项显著模式。以下按"网络结构 → 行为时间 → 人口空间关联"的逻辑递进展开。</p>
+<p class=MsoNormal>我们分析了 963 名居民（80,483 条边）及场所/时间数据，识别出十项显著模式：</p>
 
-<!-- ═══ 板块 A：网络结构属性 ═══ -->
-<p class=MsoNormal style='color:#2E4057;font-weight:bold;margin-top:16px'>板块 A：网络结构属性（模式一至三）</p>
+<p class=MsoNormal><b>模式一：近似正态的度分布。</b>加权度呈近似正态分布（图 2.1）——大多数居民维持相似规模的社交圈，表明社交连接高度均质化。与典型的无标度网络不同，没有"超级连接者"主导社交格局。</p>
 
-<!-- 模式一 -->
-<p class=MsoNormal><span class="finding-label">模式一：度分布近似正态——社交连接高度均质化。</span>
-加权度分布呈现近似正态特征：均值与中位数接近，表明大多数居民维持相似规模的社交圈，社交连接高度均质化，没有少数"超级连接者"垄断社交资源。</p>
+<p class=MsoNormal><b>模式二：强社区结构。</b>Louvain 社区检测识别出 28 个不同社区（图 2.2）。分离良好的社交集群（模块度 Q=0.5192）对应兴趣组（见图 1.7）、工作场所和邻里。</p>
+
+<p class=MsoNormal><b>模式三：高局部聚类。</b>平均聚类系数（0.0714）远高于网络密度（0.1738，图 2.3）。这种"朋友的朋友亦是朋友"的三元闭包信号表明社区通过共享背景实现凝聚。</p>
+
+<p class=MsoNormal><b>模式四：场所类型偏好。</b>公寓类场所签到最多（~37.6%），其次是工作场所（~24.2%）和餐厅（~21.3%）。餐厅+酒吧合计占签到量的 ~38.2%（图 2.4），作为面对面互动的核心社交场所（见图 3.3）。</p>
+
+<p class=MsoNormal><b>模式五：昼夜节律与工作日-周末分化。</b>活动在傍晚达到峰值（图 2.5）。周末峰值后移约 2 小时（图 2.6）：工作模式从 31.8% 降至 4.0%，休闲模式从 3.1% 升至 8.9%——与劳动年龄人口特征吻合（见图 1.1）。</p>
+
+<p class=MsoNormal><b>模式六：人口特征对社交连接的影响。</b>年龄与连接度呈曲线关系——青年与壮年群体（25–45 岁）最活跃，老年居民逐步下降（图 2.7）。社交参与似乎由生命阶段和社会经济地位所塑造（见图 1.4）。</p>
+
+<p class=MsoNormal><b>模式七：关键桥接个体。</b>少数居民持有不成比例的高中介中心性（图 2.8），在社区之间充当关键桥梁——其得分高出平均值数个数量级。</p>
+
+<p class=MsoNormal><b>模式八：互动频率异质性。</b>边权重跨度大（均值 46.5，中位数 28，最大值 451），分布高度右偏（图 2.9）。多数关系涉及较少互动，而核心强连接获得不成比例的关注。</p>
+
+<p class=MsoNormal><b>模式九：社交/休闲出行主导。</b>社交和休闲目的主导出行（图 2.10）；高自由出行与休闲导向的支出结构一致（见图 3.3）。</p>
+
+<p class=MsoNormal><b>模式十：社交场所空间集聚。</b>社交场所在不同商业/社交区域集聚（见图 4.4），形成社区规模的社交中心，强化了社区结构（见图 2.2）。</p>
+
+<p class=MsoNormal><b>Rationale.</b> Community detection used the Louvain algorithm [2] with weighted edges; centrality computed on the largest connected component. Convergence of patterns across network, temporal, venue, and travel data provides triangulating evidence.</p>
+
 
 <img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_01_degree_dist.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.1：度分布（对数-对数轴）——横轴为加权度（对数尺度），纵轴为频次（对数尺度），分布呈近似正态特征，均值与中位数接近，表明社交连接高度均质化。</i></p>
+<p class=MsoNormal style='text-align:center'><i>图 2.1：度分布（对数坐标），呈近似正态分布——大多数居民维持相似规模的社交圈，表明社交连接高度均质化。与典型的无标度网络不同，没有'超级连接者'主导社交格局。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_02_communities.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.2：Louvain 社区检测结果（模块度 Q=0.5192），社区规模从约 10 人的小集群到 60–80 人的大群体不等，反映了 Q1 中识别的兴趣组结构（见图 1.7）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_03_clustering.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.3：聚类系数分布——平均聚类系数（0.0714）远高于网络密度（0.1738），展示了'朋友的朋友亦是朋友'的三元闭包模式，这是紧密现实社交网络的典型特征。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_04_venue_types.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.4：按场所类型统计的签到量——公寓类场所签到最多（~37.6%），其次是工作场所（~24.2%）和餐厅（~21.3%）。餐厅+酒吧合计占签到量的 ~38.2%，作为核心社交场所（支出明细见图 3.3）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_05_hourly_activity.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.5：按小时统计的活动量，呈现清晰的昼夜节律——夜间低谷，上午攀升，傍晚达到峰值（17:00–19:00）。这一模式与劳动年龄人口特征一致（见图 1.1）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_06_weekday_weekend.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.6：工作日与周末活动对比——周末峰值后移约 2 小时。工作模式占比从工作日 31.8% 降至周末 4.0%，休闲模式从 3.1% 升至 8.9%，确认周末为以休闲为主的时段。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_07_age_social.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.7：年龄与社交连接度（加权度）关系，带 LOWESS 趋势线——青年与壮年群体（25–45 岁）社交最活跃，随年龄增长逐步下降。这一年龄-连接曲线与 Q1 中的教育-余额梯度形成互补（见图 1.4）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_08_bridge_individuals.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.8：介数中心性排名前 10 的桥接个体——这些'连接者'的介数得分高出平均值数个数量级，在原本分离的社区之间充当关键桥梁。针对这些个体开展社区活动将事半功倍。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_09_edge_weights.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.9：边权重分布（均值 46.5，中位数 28，最大值 451）——高度右偏，符合邓巴数理论：多数社交关系涉及较少的互动，而核心强连接获得不成比例的关注。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_10_travel_purpose.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.10：按目的分类的出行——社交和休闲出行在频次和消费上均占主导，印证了上述场所偏好模式。通勤占比较低，表明许多居民职住接近。社交目的的高自由出行与休闲导向的支出结构一致（见图 3.3）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_11_daily_activity.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.11：按模式统计的每日活动趋势（7 天滚动平均）——揭示稳定的周节律，周末休闲和餐饮活动出现周期性峰值。工作和居家模式呈现互补的昼夜模式，确认了模式 5 和 6 中观察到的工作日-周末分化。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_12_hourly_animation.gif" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.12：按模式统计的每小时活动密度动画（24 帧，每帧 600ms）——
+柱状图竞赛循环展示 24 小时，显示居家模式在夜间占主导（00:00–06:00），
+工作模式在工作时间急剧上升（08:00–17:00），休闲/餐饮模式在傍晚达到峰值
+（18:00–21:00）。此动画使模式 5 中识别的昼夜节律直观可见。</i></p>
 
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>度分布的近似正态特征与典型社交网络的幂律分布不同——EngageTown 的社交连接呈现高度均质化。这种均质化结构可能反映了社区的社交平等性：没有少数"超级连接者"垄断社交资源。从信息传播角度看，均质网络具有较好的鲁棒性：任一节点的移除对全局连通性影响有限，但也意味着信息扩散速度可能较慢（缺乏枢纽加速）。
-</div>
-
-<!-- 模式二 -->
-<p class=MsoNormal><span class="finding-label">模式二：强社区结构。</span>
-Louvain 社区检测识别出 28 个不同社区。分离良好的社交聚类（模块度 Q=0.5192）与兴趣组（见图 1.7）、工作场所及邻里相对应。Q>0.3 通常被视为显著社区结构的阈值，0.52 属于强社区结构范畴。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_02_communities.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.2：Louvain 社区规模分布——横轴为社区编号（1–28），纵轴为社区成员数，最大社区约 80 人、最小约 10 人，多数集中在 20–50 人区间，模块度 Q=0.5192。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>28 个社区远超 10 个兴趣组的数量，说明社交聚类的驱动因素多元——兴趣组只是维度之一。社区数量与雇主数量（253 家）也不成比例，表明工作场所并非社交社区的直接映射。合理的假说是：社区由"兴趣 × 场所 × 邻里"三重因素共同塑造。Q=0.52 意味着约 52% 的边位于社区内部而非跨社区——社交世界的半数以上是"熟人圈内"的互动。
-</div>
-
-<!-- 模式三 -->
-<p class=MsoNormal><span class="finding-label">模式三：高局部聚类。</span>
-平均聚类系数（0.0714）远超网络密度（0.1738）。"朋友的朋友亦是朋友"的三元闭包（Triadic Closure）倾向，标志社区通过共享社交情境实现凝聚。高聚类系数与强社区结构（模式二）在数学上相互独立但经验上高度互补——二者共同描绘了一个"部落化"的社交世界。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_03_clustering.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.3：聚类系数分布——横轴为聚类系数（0–1），纵轴为节点数量，均值 0.0714（虚线标注），分布呈右偏，少数节点具有高聚类系数（>0.2），远超网络密度 0.1738。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>聚类系数（0.0714）与网络密度（0.1738）的比较是关键：前者衡量局部三角结构（朋友之间是否互为朋友），后者衡量全局连接比例。前者 > 后者意味着：在社会网络层面，EngageTown 是一个"稀疏但局部稠密"的结构——你不认识全镇所有人，但你认识的少数人之间彼此熟识。这为社区凝聚力提供了结构基础，也为信息传播的局限性提供了线索（谣言往往局限于社区内部）。
-</div>
-
-<!-- ═══ 板块 B：行为与时间模式 ═══ -->
-<p class=MsoNormal style='color:#2E4057;font-weight:bold;margin-top:16px'>板块 B：行为与时间模式（模式四至五）</p>
-
-<!-- 模式四 -->
-<p class=MsoNormal><span class="finding-label">模式四：场所类型偏好——餐饮场所为核心社交载体。</span>
-签到数据显示公寓（Apartment）签到量最高（约 37.6%），其次是工作场所（Workplace，约 24.2%）和餐厅（Restaurant，约 21.3%）。餐饮场所（Restaurant + Pub）合计占比约 38.2%，虽然不是单一最大类别，但作为社交功能场所类型，它们构成了居民社交活动的核心载体（支出对应关系见图 3.3）。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_04_venue_types.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.4：按场所类型划分的签到分布条形图——公寓签到量最高（约 37.6%），工作场所次之（约 24.2%），餐厅第三（约 21.3%），酒吧第四（约 16.9%）。餐饮类场所（Restaurant + Pub）合计贡献了约 38.2% 的签到量。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>签到数据反映的是"人们在哪签到"。公寓签到最多可能是因为居民在家中签到或公寓有签到机制。餐饮场所（Restaurant + Pub）合计约 38.2%，作为社交功能场所类型，它们是居民面对面社交的核心载体——这与 Q3 中休闲支出接近食品支出的异常模式（图 3.3）高度吻合。签到量前三的场所合计占比约 83%，表明存在少数"热门场所"承担了不成比例的社交活动负载。
-</div>
-
-<!-- 模式五 -->
-<p class=MsoNormal><span class="finding-label">模式五：昼夜节律与工作日/周末分化。</span>
-活动高峰出现于下午末段至傍晚（17:00–19:00）。周末高峰约推迟 2 小时；工作模式（AtWork）从工作日 33.4% 降至周末 4.5%，休闲模式相应上升。两种节律（昼夜 + 周循环）的叠加效应是理解居民时间预算的核心框架。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_05_hourly_activity.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.5：逐时活动分布面积图——横轴为小时（0–23），纵轴为活动频次，夜间低活动量，早晨 6:00 起攀升，17:00–19:00 达到高峰，随后迅速回落，呈清晰的单峰昼夜节律。</i></p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_06_weekday_weekend.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.6：工作日 vs 周末活动模式对比——横轴为小时，纵轴为活动频次，两条曲线分别代表工作日（蓝色）与周末（红色），周末峰值右移约 2 小时，且峰值高度略低，AtWork 模式从 33.4% 降至 4.5%。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>图 2.5 与图 2.6 联合回答了"何时"的问题。昼夜节律（图 2.5）对标劳动年龄人口的作息（与图 1.1 的年龄结构一致）；工作日-周末分化（图 2.6）揭示了时间使用的结构性转变——周末 AtWork 从 33.4% 骤降至 4.5% 表明该镇严格遵循周工作制，休闲时间的周末补偿效应明显。这一模式也为 Q3 的双周工资周期（图 3.9）提供了消费节律的匹配锚点。
-</div>
-
-<!-- ═══ 板块 C：人口与空间关联 ═══ -->
-<p class=MsoNormal style='color:#2E4057;font-weight:bold;margin-top:16px'>板块 C：人口与空间关联（模式六至十）</p>
-
-<!-- 模式六 -->
-<p class=MsoNormal><span class="finding-label">模式六：人口特征对社交连通性的调节。</span>
-年龄与连通性呈曲线关系——青年与中年人（25–45 岁）社交活跃度最高，年长居民逐渐下降。社交参与呈现生命周期与社会经济地位的结构性影响（见图 1.4），年龄本身并非唯一决定因素，但提供了社交资本分布的第一层解释。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_07_age_social.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.7：年龄-社交连通性散点图——横轴为年龄（岁），纵轴为加权度，每个点代表一位居民，红色曲线为 LOWESS 趋势线（带宽=0.3），峰值出现在 30–40 岁区间，60 岁后显著下降。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>LOWESS 趋势线揭示的非线性关系是散点图（而非纯统计量）的价值所在——若仅报告相关系数，将掩盖峰值年龄的存在。25–45 岁的高社交活跃期与职业发展 + 子女养育阶段重叠（见图 1.6 的子女比例）；60 岁后的下降可能与退休后社交圈收缩有关。该模式与 Q1 的教育-余额梯度（图 1.4）互补：年龄解释社交的"广度"，社会经济地位解释社交的"质量"。
-</div>
-
-<!-- 模式七 -->
-<p class=MsoNormal><span class="finding-label">模式七：关键桥接个体。</span>
-少数居民介数中心性（Betweenness Centrality）极高，充当社区间的关键桥梁——其得分较均值高出数个数量级。这些"连接者"在网络韧性中扮演结构性关键角色：移除他们将导致网络分裂为更多孤立组件。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_08_bridge_individuals.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.8：介数中心性前 10 名——横轴为个体标识，纵轴为介数中心性得分，柱高呈指数级递减，第一名得分约为均值的数百倍，第十名仍显著高于全网络均值。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>介数中心性度量一个节点出现在任意两节点间最短路径上的频次。高介数个体通常是跨社区成员（例如同时属于多个兴趣组，或在不同社区工作）。从城市治理角度，这些个体是信息传播的"倍增器"——面向他们实施的社区干预（如公共卫生宣传、紧急通知）将产生不成比例的影响。图 2.8 与图 2.1（度分布近似正态）的逻辑关系：度高的个体未必是桥梁（可能其连接均在同一社区内），而桥梁个体未必度最高——两种指标捕捉了网络角色的不同维度。
-</div>
-
-<!-- 模式八 -->
-<p class=MsoNormal><span class="finding-label">模式八：关系强度异质性。</span>
-边权重跨度极大（均值 46.5，中位数 28，最大值 451），分布高度偏斜。多数关系互动频率较低，少数核心强关系占据大量社交注意力，符合 Dunbar 数理论预期——人类认知极限决定了每个人仅能维持有限数量的亲密关系。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_09_edge_weights.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.9：边权重（互动频次）分布直方图——横轴为互动次数，纵轴为边数量，均值 46.5（虚线）、中位数 28（虚线），分布高度右偏，多数边集中于低频区域（<50），少数强关系延伸至 450+。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>均值（46.5）显著大于中位数（28），这是右偏分布的经典标志——少数极强关系拉高了均值。中位数 28 意味着半数社交关系的互动次数不超过 28 次（15 个月内），约每月不到 2 次——这是"弱关系"（Granovetter, 1973）的量化表征。最大值 451 则对应约每日 1 次的核心关系。该分布的双层结构（大量弱关系 + 少量强关系）与 Dunbar 数的"5-15-50-150"层级模型一致，为 EngageTown 的社交生态提供了认知心理学维度。
-</div>
-
-<!-- 模式九 -->
-<p class=MsoNormal><span class="finding-label">模式九：社交/休闲出行主导。</span>
-社交与休闲目的主导居民出行；高比例的自主性出行与休闲类支出主导的消费结构一致（见图 3.3）。通勤仅居次要地位，表明多数居民居住地靠近工作场所——这与微型城镇的空间尺度（步行可达）相符。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_10_travel_purpose.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.10：出行目的构成——横轴为出行目的类别（社交/休闲/通勤），纵轴为出行频次，社交与休闲出行合计占绝对多数，通勤出行仅占次要比例。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>出行目的构成是场所偏好（模式四）的"移动端"证据——人们不仅签到于餐饮场所，而且出行本身也以社交/休闲为主要动机。通勤比例低与微型企业结构（图 3.1）一致：253 家小企业散布于全镇，而非集中于单一 CBD，居民的工作出行距离天然较短。这一模式的局限性在于：TravelJournal 可能低估了非自主性出行（如购物跑腿），但这不影响社交/休闲主导的结论方向。
-</div>
-
-<!-- 模式十 -->
-<p class=MsoNormal><span class="finding-label">模式十：场所空间集聚。</span>
-社交场所集中于明确的商业/社交功能区（见图 4.4），形成邻里尺度的社交枢纽，强化了社区结构（见图 2.2）。12 家酒吧和 20 家餐厅并非均匀散布，而是集聚于若干热点区域——这种空间集聚产生了一种"社交引力场"，居民被吸引至共享场所，从而促进了跨社区的弱关系形成。</p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>模式十是唯一以 Q4 地图（图 4.4）为主要证据的模式——场所的空间分布无法从表格数据中感知，必须依赖地图可视化。场所集聚与社区结构（模式二）的关系是双向的：集聚强化社区（共享场所促进互动），社区也塑造集聚（社区偏好的场所类型不同）。该模式将 Q2 的网络分析"落到了地图上"，完成了从抽象网络到物理空间的映射。
-</div>
-
-<hr class="section-divider">
-
-<p class=MsoNormal><b>Q2 综合时间总览。</b>
-以下每日活动趋势图将全部 10 项模式置于时间轴上，展示稳定的周节律——周末休闲与餐饮活动出现周期性峰值，工作日与周末的模式交替清晰可辨。该图是整个 Q2 分析的时间维度总结。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_11_daily_activity.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 2.11：按模式划分的每日活动趋势（7 日滚动平均）——横轴为日期，纵轴为活动频次，多条曲线分别代表不同活动模式（AtHome、AtWork、Recreation 等），周末出现周期性峰值，工作日呈现互补的低谷。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>图 2.11 将模式四至模式十的时间维度统一呈现。7 日滚动平均平滑了日间噪音，使周节律更清晰。AtWork（工作）与 Recreation（休闲）的互补翻转是核心发现——这不仅是模式五的重复验证，更是对所有"时间相关模式"的集成性证据。社区检测采用加权 Louvain 算法 [2]；中心性指标在最大连通分量上计算。跨网络、时间、场所及出行数据的模式收敛构成三角互证（Triangulation）——同一个社交事实从不同数据源得到独立确认。
-</div>
-
-<div class="page-break"></div>
+<div class="section-divider"><span>问题 3</span></div>
 
 <!-- ═══════════════════════════════════════════════ Q3 ═══════════════════════════════════════════════ -->
 
-<p class=MsoNormal><b>3. 主导产业基础——小型服务经济体</b></p>
+<p class=MsoNormal><b>3. 主导产业基础——小型服务经济</b></p>
 
-<div class="framework-box">
+<p class=MsoNormal style='background:#f5f7fa;padding:10px 14px;border-left:3px solid #2E4057;margin:8px 0 12px 0;font-size:10.5pt'>
 <b>分析框架（Munzner, 2009）。</b>
-<b>领域情境：</b>识别 EngageTown 的经济结构——企业规模与类型、工资-支出流以及主导产业。
-<b>数据/任务抽象：</b>将雇主记录抽象为企业规模分布，将金融交易抽象为按类别的流量规模，将建筑存量抽象为物理经济足迹——一项旨在刻画经济活动类型与规模的发现任务。
-<b>视觉编码：</b>采用直方图（雇主规模、工资）、条形图（资金流、建筑类型）、饼图（支出构成、产业分类）、箱线图（按雇主规模与产业划分的工资）以及时间序列折线图（每日资金流）。
-<b>图表设计：</b>9 幅图（图 3.1–3.9）按"结构属性 → 工资分析 → 时间动态 → 产业可辨识度"递进，揭示多层次地方服务经济。
-</div>
+<b>领域情境：</b>识别 EngageTown 的经济结构——企业规模与类型、工资-支出流动及主导产业。
+<b>数据/任务抽象：</b>将雇主记录抽象为企业规模分布，金融交易抽象为按类别的流量规模，建筑存量抽象为物理经济足迹——属于发现任务，旨在刻画经济活动的类型和规模。
+<b>视觉编码：</b>采用直方图（雇主规模、工资）、条形图（现金流、建筑类型）、饼图（支出构成、行业分类）、箱线图（按雇主规模和行业的工资）以及时间序列折线图（每日现金流）。
+<b>图表设计：</b>9 幅图（图 3.1–3.9）从经济结构属性经工资分析和时间序列到行业分类，揭示分层的本地服务经济。
+</p>
 
-<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(9 幅图 / ~490 词 —— 限制：500 词)</p>
+<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(9 幅图 / ~90 词 — 限制: 500 词)</p>
 
-<p class=MsoNormal>EngageTown 的经济是一个由小型企业构成的分布式生态系统，不存在单一主导产业。以下五项发现从结构、财务、工资、空间与产业辨识五个维度逐步逼近经济本质。</p>
+<p class=MsoNormal>EngageTown 的经济是由小微企业构成的分布式生态系统，而非单一主导产业：</p>
 
-<!-- 发现一 -->
-<p class=MsoNormal><span class="finding-label">发现一：微型雇主主导。</span>
-全部 253 家雇主均为小型企业，雇员规模在 2–9 人之间（均值 5.2，中位数 5）——不存在工厂、企业总部或大型机构。总计 1,328 个岗位服务于 1,011 名居民，人均 1.3 个岗位。该微型企业结构与微型家庭模式高度一致（见图 1.5），提示家庭与企业之间存在"规模同构"——微型家庭既是微型企业的劳动供给单元，也可能是其消费单元。</p>
+<p class=MsoNormal><b>发现一：小微企业主导。</b>所有 253 家雇主均为小微企业，雇员规模在 2–9 人之间（均值 5.2，中位数 5）——没有工厂、公司总部或大型机构（图 3.1）。总就业岗位 1,328 个，服务 1,011 名居民，人均 1.3 个岗位。这种小微企业结构与小型家庭人口模式相呼应（见图 1.5）。</p>
+
+<p class=MsoNormal><b>发现二：财务结构。</b>工资（年总额 $55,633,022）为唯一收入来源（图 3.2）。前三类支出——住房（$8,982,423）、休闲（$4,973,094）和食品（$4,562,518）——占支出的大部分（图 3.3）。休闲支出几乎与食品持平，与周末休闲活动（见图 2.6）和社交出行主导（见图 2.10）一致。每日现金流显示双周工资周期（图 3.9）。</p>
+
+<p class=MsoNormal><b>发现三：工资结构。</b>时薪范围为 $10.01–$40.86，均值 $19.22（图 3.4）。近正态分布表明工资结构相对平等。雇主规模与工资水平无显著相关（图 3.5）——薪酬似乎由岗位类型而非雇主规模驱动。</p>
+
+<p class=MsoNormal><b>发现四：建筑与商业构成。</b>该镇 1,042 栋建筑中，526 栋住宅（50%），512 栋商业（49%），4 所学校（图 3.6）。512 栋商业建筑服务 253 家雇主，商业空间超出雇主数 259 栋。</p>
+
+<p class=MsoNormal><b>发现五：行业识别。</b>将雇主位置与已知场所匹配，仅能分类 28/253 家雇主（11%）——17 家餐饮服务和 11 家酒吧/酒店。其余 0 家（0%）为未分化的商业企业（图 3.7）。各可识别类别的工资相似（图 3.8），没有任何行业享有工资溢价。</p>
+
+<p class=MsoNormal><b>主导产业判断。</b>EngageTown 的经济最适合描述为<b>本地服务生态系统</b>——小型、未分化的商业企业辅以服务本地需求的可见酒店业。0% 的雇主无法具体分类本身就是一项发现：该镇的商业身份是细粒度、多元化的，而非集中化的。</p>
+
+<p class=MsoNormal><b>依据。</b>分析结合了雇主记录（Jobs.csv、Employers.csv）、金融日志汇总（140 万笔交易）和与场所表交叉引用的建筑存量。行业分类受限于缺乏雇主行业代码；分类依赖于建筑-场所匹配。</p>
+
 
 <img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_01_employer_size.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 3.1：雇主规模分布直方图——横轴为雇员人数，纵轴为企业数量，全部 253 家雇主集中在 2–9 人区间，均值 5.2（虚线）、中位数 5，无任何企业超过 9 名员工。</i></p>
+<p class=MsoNormal style='text-align:center'><i>图 3.1：雇主规模分布——所有 253 家雇主均为小微企业（规模 2–9 人，均值 5.2，中位数 5）。没有任何雇主超过 9 人——没有工厂、公司总部或大型机构。这与小型家庭人口结构相呼应（见图 1.5）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_02_financial_flow.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 3.2：按类别统计的净现金流——工资（年总额 $55,633,022）为唯一收入来源。住房（$8,982,423）、休闲（$4,973,094）和食品（$4,562,518）主导支出，休闲支出几乎与食品持平——这一异常模式表明居民活跃的休闲和社交文化。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_03_expense_pie.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 3.3：支出构成——前三类（住房、休闲、食品）合计占支出的大部分。高休闲支出与出行模式中的社交/休闲主导（见图 2.10）和场所偏好（见图 2.4）一致。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_04_wage_hist.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 3.4：时薪分布（范围 $10.01–$40.86，均值 $19.22）——近正态分布表明工资结构相对平等，最高与最低收入者之间无极端差距。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_05_wage_box.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 3.5：按雇主规模统计的工资分布——雇主规模与工资水平无显著相关。某些最小雇主支付溢价工资，而较大雇主支付低于平均水平的薪酬，表明薪酬由岗位类型而非雇主规模驱动。教育-工资溢价也清晰可见（见图 1.4）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_06_building_types.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 3.6：建筑类型构成——1,042 栋建筑中，526 栋住宅（50%），512 栋商业（49%），4 所学校。均衡的住宅-商业混合支持了通过网络分析识别的社区结构（见图 2.2）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_07_industry_pie.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 3.7：雇主行业分类——仅 28/253 家雇主（11%）可通过建筑-场所匹配分类为具体行业（17 家餐饮服务，11 家酒吧/酒店）。其余 0 家（0%）为未分化的商业企业。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_08_industry_wage.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 3.8：按行业统计的时薪——可识别行业类别的工资相似，没有任何行业享有显著的工资溢价。这种扁平工资结构与服务社区需求的本地服务经济一致，而非出口导向型产业。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_09_daily_financial.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 3.9：每日现金流（7 天滚动平均）——工资收入（绿色）呈现周期性峰值，表明双周发薪周期。总支出（红色）紧随工资周期，略有滞后，而净流量（蓝色虚线）徘徊于零附近。同步的收入-支出节律表明储蓄缓冲有限——与小微企业经济中基于工资的消费模式一致。</i></p>
 
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>均值与中位数接近（5.2 vs 5）表明分布近似对称——不仅没有大型企业，也没有显著的规模分化。这一发现在方法论上的价值在于：它将 Q1 的家庭结构和 Q2 的社区结构串联为"小规模组织"的统一主题——家庭小、企业小、社区小。人均 1.3 个岗位意味着部分居民身兼多职，这可能是微型企业经济中收入补充的常见策略。
-</div>
-
-<!-- 发现二 -->
-<p class=MsoNormal><span class="finding-label">发现二：财务结构——工资驱动、休闲消费突出。</span>
-工资（年均 $55,633,022）为唯一收入来源。前三大支出——住房（$8,982,423）、休闲（$4,973,094）和食品（$4,562,518）——占总支出的大部分。休闲支出接近食品支出是一个值得注意的结构特征：在许多中小城镇中，食品支出通常远超休闲，而 EngageTown 近乎 1:1 的比例暗示该镇拥有异常活跃的休闲消费文化。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_02_financial_flow.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 3.2：按类别划分的资金净流量条形图——工资收入（绿色，$55.6M/年）为流入端唯一柱，住房（$9.0M）、休闲（$5.0M）、食品（$4.6M）依次为流出端最大柱。</i></p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_03_expense_pie.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 3.3：支出构成饼图——住房占比最大，休闲与食品近乎相等（分别约占总支出的一成左右），其余类别合计不足半数。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>资金流（图 3.2）展示绝对规模，饼图（图 3.3）展示相对比例——两张图互为补充。休闲≈食品这一发现的意义需要与 Q2 的社交行为交叉验证：酒吧/餐厅签到主导（图 2.4）、社交出行占优（图 2.10）、周末休闲峰值（图 2.6）——三项独立证据共同指向"该镇居民确实在休闲上花费了大量时间和金钱"。这不是数据孤例，而是跨领域收敛。
-</div>
-
-<!-- 发现三 -->
-<p class=MsoNormal><span class="finding-label">发现三：工资结构——相对平等化。</span>
-时薪范围 $10.01–$40.86，均值 $19.22。近似正态分布表明相对平等化的工资结构。雇主规模与工资水平无显著相关性——薪酬似乎取决于岗位角色而非企业规模，部分最小型企业支付了较高工资。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_04_wage_hist.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 3.4：时薪分布直方图——横轴为时薪（$10–$41），纵轴为岗位数，均值 $19.22（虚线），近似正态分布，两端无极端离群值，工资离散程度适中。</i></p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_05_wage_box.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 3.5：按雇主规模划分的时薪箱线图——横轴为雇主雇员人数（2–9 人），纵轴为时薪，各箱线中位数在 $18–$21 之间波动，无单调递增或递减趋势，不同规模组间重叠度高。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>图 3.4 建立工资的整体分布形态（约正态），图 3.5 检验"大企业付高薪"的常识性假说——结果为否。箱线图各组的重叠度表明雇主规模对工资的解释力极弱。这与教育-工资溢价（图 1.4）形成了有趣的"双重工资决定机制"：教育解释工资差异，但企业规模不解释。换言之，EngageTown 的工资是由"你是谁"（人力资本）而非"你在哪工作"（企业特征）决定的。这一结论对 Q1 的学历分布有回指意义。
-</div>
-
-<!-- 发现四 -->
-<p class=MsoNormal><span class="finding-label">发现四：建筑与商业组合——住宅-商业均衡。</span>
-全镇 1,042 栋建筑中，住宅 526 栋（50%）、商业 512 栋（49%）、学校 4 所。512 栋商业建筑服务 253 家雇主，商业空间较雇主数量多出 259 个——空闲商业空间的存在暗示经济增长或结构转型的潜在空间。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_06_building_types.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 3.6：建筑类型构成——住宅 526 栋（50%）、商业 512 栋（49%）、学校 4 所（<1%），住宅与商业近乎均等。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>住宅与商业 50:49 的比例值得注意——这是规划型社区而非自然生长型城镇的特征。512 栋商业建筑对应 253 家雇主：商业空置率约为 50%，远超正常水平。可能的解释包括：(a) 部分商业建筑用于非雇主用途（如独立承包商或家庭作坊），(b) 建筑数据包含了已规划但尚未进驻的空间，(c) 该镇具有季节性经济特征。无论哪种解释，商业空间过剩本身是一个值得城市规划者关注的信号。
-</div>
-
-<!-- 发现五 -->
-<p class=MsoNormal><span class="finding-label">发现五：产业可辨识度——大部分不可分类。</span>
-通过雇主地址与已知场所匹配，仅 253 家雇主中的 28 家（11%）可归入具体行业——17 家餐厅/餐饮服务与 11 家酒吧/酒店接待。其余 225 家（89%）为未分化商业企业。可识别类别间工资水平相近，无单一行业享有显著的工资溢价。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_07_industry_pie.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 3.7：雇主产业分类——可识别产业仅占总数的 11%（17 家餐厅/餐饮服务 + 11 家酒吧/酒店接待），其余 89%（225 家）为未分化商业企业。</i></p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_08_industry_wage.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 3.8：按产业划分的时薪箱线图——餐厅/餐饮服务、酒吧/酒店接待及未分类企业三组的中位时薪接近，箱线高度重叠，无统计显著差异。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>89% 不可分类是一个"以无发现为发现"的典型案例。产业分类的失败并非数据质量缺陷，而是经济结构本身的信息——当大多数企业无法归入标准行业类别时，说明该镇的经济活动具有"前产业分类"的细粒度特征（手工艺人、家庭作坊、自由职业者、小型咨询服务等）。图 3.8 的工资扁平化进一步支持了"无主导产业"的结论——若存在一个高薪主导产业，箱线图会出现显著的组间差异。
-</div>
-
-<hr class="section-divider">
-
-<p class=MsoNormal><b>Q3 综合结论与经济时间动态。</b></p>
-
-<p class=MsoNormal><span class="finding-label">主导产业基础：地方服务生态系统。</span>
-EngageTown 经济最恰当的刻画是<b>地方服务生态系统</b>——由小型、未分化商业企业构成，辅以可见的接待服务业满足本地需求。89% 的雇主无法具体归类本身即为一项发现：该镇的商业特征是细粒度与多元化的，而非集中化的。没有工厂、没有企业总部、没有大型机构——这是一个由微型企业构成的分布式经济网络。</p>
-
-<p class=MsoNormal>以下每日资金流图将五项发现置于时间轴上：工资收入呈现规律性峰值（双周付薪周期），总支出紧密跟踪工资周期，净流量在零附近波动——这些时间动态为上述静态结构提供了过程性证据。</p>
-
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_09_daily_financial.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 3.9：每日资金流时间序列（7 日滚动平均）——绿色曲线为工资收入，呈周期性峰值（双周付薪周期），红色曲线为总支出，紧密跟踪收入周期略微滞后，蓝色虚线为净流量（收入-支出），在零附近窄幅波动。</i></p>
-
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>图 3.9 是 Q3 的收束之图——它将静态的规模分布（图 3.1）、结构比例（图 3.2–3.3）和工资水平（图 3.4–3.5）统一到时间维度上。双周工资周期的清晰可见验证了数据质量；支出-收入近乎同步的节律表明居民储蓄缓冲有限——典型的"工资到工资"消费模式，与微型企业经济中收入流稳定性较低的特征一致。方法论上，分析综合了雇主记录（Jobs.csv、Employers.csv）、金融日志汇总（140 万笔交易）以及与场所表交叉引用的建筑存量数据。产业分类受限于雇主行业编码的缺失；分类依赖于建筑-场所匹配。
-</div>
-
-<div class="page-break"></div>
+<div class="section-divider"><span>问题 4</span></div>
 
 <!-- ═══════════════════════════════════════════════ Q4 ═══════════════════════════════════════════════ -->
 
-<p class=MsoNormal><b>4. EngageTown 城市综合概览——面向居民的一页摘要</b></p>
+<p class=MsoNormal><b>4. EngageTown 城市概览——面向居民的一页式摘要</b></p>
 
-<div class="framework-box">
+<p class=MsoNormal style='background:#f5f7fa;padding:10px 14px;border-left:3px solid #2E4057;margin:8px 0 12px 0;font-size:10.5pt'>
 <b>分析框架（Munzner, 2009）。</b>
-<b>领域情境：</b>将 EngageTown 的人口、社交、经济与空间维度合成为面向居民与城市规划者的单一集成概览——一项要求在单页约束下实现信息密度的展示型任务。
-<b>数据/任务抽象：</b>关键指标从前述分析中抽象提取：人口特征（Q1）、社交网络指标（Q2）、经济数据（Q3）及空间场所位置——精简为一组标题统计量、小幅面图表和一幅参考地图的紧凑集合。
-<b>视觉编码：</b>采用信息图（Infographic）布局，设置四大主题板块（我们是谁/我们如何生活/我们的经济/我们的场所），结合小幅面图表（年龄、场所、支出）以快速获取趋势，辅以空间地图叠加层用于地理参考——利用位置、大小和颜色构建单页视觉层级。
-<b>图表设计：</b>4 幅图（图 4.1–4.4）将小幅面图表（紧凑、高数据密度的 200px 图表）与全宽参考地图结合，兼顾快速浏览与空间定位。各板块与 Q1–Q3 详细分析之间的交叉引用形成完整证据链条。
-</div>
+<b>领域情境：</b>将 EngageTown 的人口、社交、经济和空间维度综合为面向居民和城市规划者的单一整合概览——属于展示任务，需在一页约束内实现信息密度最大化。
+<b>数据/任务抽象：</b>从前述分析中提取关键指标：人口统计（Q1）、社交网络指标（Q2）、经济数据（Q3）和场所空间位置——精简为紧凑的标题统计、小多图和参考地图。
+<b>视觉编码：</b>采用信息图布局，包含三个主题板块（我们是谁/我们如何生活/我们的经济）、小多图（年龄、场所、支出）用于一览趋势，以及空间地图叠加用于地理参考——利用位置、尺寸和颜色在单页上创建视觉层次。
+<b>图表设计：</b>4 幅图（图 4.1–4.4）结合小多图（紧凑、数据密集、200px 图表）和全宽参考地图，支持快速扫描和空间定位。交叉引用将各板块连接至 Q1–Q3 的详细分析。
+</p>
 
 <div style="border:2px solid #2E4057; border-radius:12px; padding:20px; background:#f8f9fa; margin:10px 0;">
 
-<p class=MsoNormal style='text-align:center'><b style='font-size:14.0pt'>欢迎来到 EngageTown ——您所生活的社区一页概览</b></p>
+<p class=MsoNormal style='text-align:center'><b style='font-size:14.0pt'>欢迎来到 EngageTown——您的社区一览</b></p>
 
 <p class=MsoNormal style='text-align:center'><b>1,011 名居民 | 平均年龄 39 岁 | 户均 2.0 人 | 80,483 条社交连接</b></p>
 
-<p class=MsoNormal><b>我们是谁</b> <span style='color:#888;font-size:9pt'>(见图 1.1–图 1.9)</span>：EngageTown 拥有 1,011 名居民，以劳动年龄人口为主（平均年龄 39.1 岁）。居民以小家庭模式居住（户均 2.0 人），约 30% 的家庭有子女。教育背景涵盖高中至研究生，多数持有高中/大专或学士学历。居民组织为 10 个分布均匀的兴趣组（A–J），确保社区内的多元社交混合。</p>
+<p class=MsoNormal><b>我们是谁</b> <span style='color:#888;font-size:9pt'>（见图 1.1–图 1.9）</span>：EngageTown 拥有 1,011 名居民，以劳动年龄人口为主体（平均年龄 39.1 岁）。我们居住在小型家庭中（平均 2.0 人），约 30% 的家庭有子女。教育背景从高中到研究生不等，多数持有高中/大学或本科学历。我们被组织为 10 个均匀分布的兴趣组（A–J），确保社区内多元化的社交混合。</p>
 
-<p class=MsoNormal><b>我们如何生活</b> <span style='color:#888;font-size:9pt'>(见图 2.1–图 2.10)</span>：社交网络充满活力——80,483 条关系组织为 28 个不同社区（模块度 0.5192），标志强大且边界清晰的社交圈。居民常去 12 家酒吧、20 家餐厅和 4 所学校。社交生活遵循自然节律：上午活动量上升，下午末段达到高峰，傍晚转向休闲与餐饮。周末作息推迟——活动高峰约延后 2 小时，休闲时间显著增加，工作时间大幅减少（从 33% 降至 4%）。</p>
+<p class=MsoNormal><b>我们如何生活</b> <span style='color:#888;font-size:9pt'>（见图 2.1–图 2.10）</span>：我们的社交网络充满活力——80,483 条关系被组织为 28 个不同社区（模块度 0.5192），表明强劲、界限分明的社交圈。我们常去 12 家酒吧、20 家餐厅和 4 所学校。社交生活遵循自然节律：活动在上午攀升，傍晚达到峰值，晚间转向休闲和餐饮。周末我们睡懒觉——活动峰值推迟约 2 小时，休闲时间显著增加（9% vs 工作日 3%），工作时间大幅减少（4% vs 32%）。</p>
 
-<p class=MsoNormal><b>我们的经济</b> <span style='color:#888;font-size:9pt'>(见图 3.1–图 3.8)</span>：经济建立在 253 家小型企业之上，每家企业雇用 2–9 人——以本地商铺、服务和接待业为主的社区经济体，而非大型企业。年工资总额 $55,633,022，时薪范围 $10.01–$40.86（均值 $19.22）。最大支出项为住房（$8,982,423/年）和休闲（$4,973,094/年），既反映生活成本，也体现社区对休闲和社交活动的重视。全镇拥有 512 栋商业建筑——超出 253 家注册雇主数量——为经济增长预留了空间。建筑存量（总计 1,042 栋）在住宅（526 套）与商业活动之间实现了均衡。</p>
+<p class=MsoNormal><b>我们的经济</b> <span style='color:#888;font-size:9pt'>（见图 3.1–图 3.8）</span>：我们的经济建立在 253 家小型企业之上，每家雇用 2–9 人——这是一个由本地商铺、服务和酒店场所构成的社区，而非大型企业。年工资总额 $55,633,022，时薪范围 $10.01–$40.86（平均 $19.22）。最大支出为住房（$8,982,423/年）和休闲（$4,973,094/年），反映了生活成本和社区对休闲社交活动的重视。该镇有 512 栋商业建筑——超过 253 家注册雇主——为经济增长提供空间。建筑存量（1,042 栋）平衡了住宅（526 栋）与商业活动。</p>
 
-<p class=MsoNormal><b>我们的场所：</b>城市地图（图 4.4）展示了关键社区场所的地理分布。酒吧与餐厅集中于明确的商业/社交功能区，学校策略性地分散布局以服务各个邻里。</p>
+<p class=MsoNormal><b>我们的场所：</b>城市地图（图 4.4）展示了关键社区场所的地理分布。酒吧和餐厅在不同商业/社交区域集聚，学校则战略性分散以服务所有社区。</p>
 
-<p class=MsoNormal style='text-align:center; margin-top:12pt;'><b>EngageTown 是一个小巧、紧密联结且均衡的社区——邻里相识，本地商业服务本地需求，社交生活在共享餐饮、晚间聚会和多元兴趣组中繁荣生长。</b></p>
+<p class=MsoNormal style='text-align:center; margin-top:12pt;'><b>EngageTown 是一个小型、互联、均衡的社区——邻里相知，本地企业服务本地需求，社交生活围绕共享餐食、外出夜晚和多元兴趣组蓬勃发展。</b></p>
 
 </div>
 
-<!-- Q4 小幅面图表 -->
+
 <img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q4_01_mini_age.png" style="max-width:32%;display:inline">
 <img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q4_02_mini_venue.png" style="max-width:32%;display:inline">
 <img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q4_03_mini_financial.png" style="max-width:32%;display:inline">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 4.1–4.3：三幅小幅面摘要图——年龄概况（左）：迷你直方图，标注均值 39.1 岁；场所签到分布（中）：迷你条形图，标注餐厅/酒吧/公寓三类主导场所；支出构成（右）：迷你饼图，标注住房/休闲/食品三大类别。三图联合提供了 EngageTown 关键人口、社交与经济指标的"仪表盘"视图（详细分析见 Q1–Q3）。</i></p>
+<p class=MsoNormal style='text-align:center'><i>Fig 4.1–4.3: Age profile, venue check-in distribution, and expense composition — small-multiple summary of EngageTown's key demographic and economic indicators (see Q1–Q3 for detailed analysis).</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q4_04_map.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>Fig 4.4: EngageTown venue map — Pubs (red circles, 12 locations), Restaurants (green triangles, 20 locations), and Schools (blue diamonds, 4 locations) overlaid on the town base map. Venue clusters in specific zones form distinct commercial/social districts (see Fig 2.2 and 2.4 for the social activity these venues generate).</i></p>
 
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>小幅面图表（Small Multiples）的设计遵循 Tufte（1983）的"高数据密度"原则：每幅图仅 200px 高度，但承载了 Q1–Q3 各自的标志性指标。三图并排布局允许读者在不翻页的情况下同时比较人口、场所与支出三个维度的分布形态。年龄的右偏、场所的集中度、支出的结构——三个"快照"在视觉上形成互补节奏。
-</div>
+<hr>
 
-<img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q4_04_map.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i class="caption">图 4.4：EngageTown 场所地图——酒吧（红色圆点，12 处）、餐厅（绿色三角，20 处）及学校（蓝色菱形，4 处）叠加于城市底图。场所呈现两类空间模式：(1) 酒吧与餐厅集聚于城镇中心的若干热点区域，形成商业/社交功能区；(2) 学校分散布局，覆盖不同住宅片区。这些场所是 Q2 社交网络研究（图 2.2–2.4）的空间锚点。</i></p>
+<!-- ═══════════════════════════════════════════════ SYNTHESIS ═══════════════════════════════════════════ -->
 
-<div class="reasoning-box">
-<b>🔍 分析思路：</b>地图是 Q4 的核心——它将 Q1–Q3 的抽象统计量还原为物理空间中的可见模式。红色圆点（酒吧）与绿色三角（餐厅）的空间共聚（co-location）现象提示：酒吧与餐厅可能形成互补性的社交目的地——先用餐、后饮酒的典型社交链条在空间上得到了便利化。4 所学校分散布局是规划思维的体现（学区覆盖），而酒吧/餐厅的集聚则是市场力量的结果（集聚经济）。两套空间逻辑的并存表明 EngageTown 既是一个规划型社区，也是一个有机演化的商业环境。该地图与 Q2 的社区检测（图 2.2）构成了"空间-网络"的最终对应：社区结构应当在场所集聚区周边呈现更高的边界清晰度。
-</div>
+<h2>综合分析：跨问题比较表</h2>
+
+<p class=MsoNormal>以下表格综合了三个分析问题的研究发现，揭示了人口结构（Q1）、社交行为（Q2）和经济组织（Q3）如何构成 EngageTown 相互关联的整体画像。</p>
+
+<!-- ── Table 1: Narrative Threads ── -->
+
+<h3 style="font-size:11pt;color:#2E4057;margin-top:16px;">Table 1 — Convergent Narratives Across Questions</h3>
+
+<table border='1' style='border-collapse:collapse;margin:8px 0;font-size:9.5pt;font-family:Calibri,sans-serif;width:100%'>
+<tr style='background:#2E4057;color:white'>
+<th style='padding:6px 10px;text-align:left;width:20%'>Narrative Thread</th>
+<th style='padding:6px 10px;text-align:left;width:26%'>Q1: Demographics<br><span style='font-weight:normal;font-size:8pt'>(Fig 1.1–1.9)</span></th>
+<th style='padding:6px 10px;text-align:left;width:27%'>Q2: Social Activities<br><span style='font-weight:normal;font-size:8pt'>(Fig 2.1–2.12)</span></th>
+<th style='padding:6px 10px;text-align:left;width:27%'>Q3: Business Base<br><span style='font-weight:normal;font-size:8pt'>(Fig 3.1–3.9)</span></th>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Small-Scale Community Structure</td>
+<td style='padding:5px 10px'>Avg household = 2.0 persons;<br>37% live in 2-person households (Fig 1.5)</td>
+<td style='padding:5px 10px'>28 distinct Louvain communities;<br>modularity Q=0.5192 (Fig 2.2)</td>
+<td style='padding:5px 10px'>All 253 employers are micro-enterprises (2–9 employees);<br>no large institutions (Fig 3.1)</td>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Temporal Rhythms</td>
+<td style='padding:5px 10px'>Working-age majority: 72% aged 25–55;<br>mean age 39.1 years (Fig 1.1)</td>
+<td style='padding:5px 10px'>Diurnal peak at 17:00–19:00;<br>weekend shift: +2h later, Recreation 9% vs 3% (Fig 2.5–2.6, 2.12)</td>
+<td style='padding:5px 10px'>Bi-weekly wage cycles visible in daily flows;<br>expenses track income with small lag (Fig 3.9)</td>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Resource Distribution</td>
+<td style='padding:5px 10px'>Right-skewed balance distribution;<br>median $14,310, mean $18,842 (Fig 1.8)</td>
+<td style='padding:5px 10px'>Betweenness highly concentrated: top 10 bridges orders of magnitude above mean;<br>edge weights right-skewed (Fig 2.8–2.9)</td>
+<td style='padding:5px 10px'>Near-normal wage distribution ($10.01–$40.86);<br>no employer-size wage premium (Fig 3.4–3.5)</td>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Education-SES Gradient</td>
+<td style='padding:5px 10px'>Balance rises with education: Graduate &gt; Bachelors &gt; High School &gt; Low (Fig 1.4)</td>
+<td style='padding:5px 10px'>Age-connectivity curve peaks at 25–45;<br>declines among older residents (Fig 2.7)</td>
+<td style='padding:5px 10px'>Wages flat across industries (Fig 3.8);<br>compensation driven by role not employer scale (Fig 3.5)</td>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Leisure &amp; Consumption Focus</td>
+<td style='padding:5px 10px'>10 interest groups (A–J) evenly distributed;<br>~101 members each (Fig 1.7)</td>
+<td style='padding:5px 10px'>Restaurant + Pub = majority of check-ins;<br>Social/Recreation travel dominates (Fig 2.4, 2.10)</td>
+<td style='padding:5px 10px'>Recreation spending ($4,973,094/yr) rivals Food ($4,562,518);<br>28 hospitality employers identified (Fig 3.3, 3.7)</td>
+</tr>
+</table>
+
+<!-- ── Table 2: Key Metrics Side-by-Side ── -->
+
+<h3 style="font-size:11pt;color:#2E4057;margin-top:20px;">Table 2 — Key Quantitative Indicators by Question</h3>
+
+<table border='1' style='border-collapse:collapse;margin:8px 0;font-size:9.5pt;font-family:Calibri,sans-serif;width:100%'>
+<tr style='background:#2E4057;color:white'>
+<th style='padding:6px 10px;text-align:left'>Indicator</th>
+<th style='padding:6px 10px;text-align:center'>Q1 Value</th>
+<th style='padding:6px 10px;text-align:center'>Q2 Value</th>
+<th style='padding:6px 10px;text-align:center'>Q3 Value</th>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Population / Nodes</td>
+<td style='padding:5px 10px;text-align:center'>1,011 participants</td>
+<td style='padding:5px 10px;text-align:center'>963 nodes</td>
+<td style='padding:5px 10px;text-align:center'>253 employers</td>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Central Tendency</td>
+<td style='padding:5px 10px;text-align:center'>Age μ = 39.1, Mdn = 39</td>
+<td style='padding:5px 10px;text-align:center'>Degree μ = 0.0;<br>Modularity Q = 0.5192</td>
+<td style='padding:5px 10px;text-align:center'>Wage μ = $19.22/hr;<br>Employer size μ = 5.2</td>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Dispersion / Range</td>
+<td style='padding:5px 10px;text-align:center'>Age SD = 12.4;<br>Joviality SD = 0.291</td>
+<td style='padding:5px 10px;text-align:center'>Clustering coef = 0.0714;<br>Density = 0.1738</td>
+<td style='padding:5px 10px;text-align:center'>Wage range: $10.01–$40.86;<br>253 employers, 2–9 emp each</td>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Groups / Categories</td>
+<td style='padding:5px 10px;text-align:center'>10 interest groups (A–J)</td>
+<td style='padding:5px 10px;text-align:center'>28 Louvain communities</td>
+<td style='padding:5px 10px;text-align:center'>3 identifiable industries;<br>0 General Commercial (0%)</td>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Top Category</td>
+<td style='padding:5px 10px;text-align:center'>Education: HighSchoolOrCollege<br>(52%)</td>
+<td style='padding:5px 10px;text-align:center'>Venue: Restaurants<br>(most check-ins, Fig 2.4)</td>
+<td style='padding:5px 10px;text-align:center'>Expense: Shelter $8,982,423/yr<br>(Fig 3.2–3.3)</td>
+</tr>
+
+<tr>
+<td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Key Distribution Shape</td>
+<td style='padding:5px 10px;text-align:center'>Right-skewed (balance)<br>Normal (joviality)</td>
+<td style='padding:5px 10px;text-align:center'>Approximately normal (degree)<br>Right-skewed (edge weights)</td>
+<td style='padding:5px 10px;text-align:center'>Near-normal (wages)<br>Right-skewed (employer size)</td>
+</tr>
+</table>
+
+<p class=MsoNormal style='font-size:9pt;color:#888;margin-top:6px'><i>These tables synthesize the key findings from Q1–Q3. The convergent patterns — small-scale organization at demographic, social, and economic levels; synchronized temporal rhythms; and concentrated but not extreme resource distributions — together characterize EngageTown as a tightly integrated, community-oriented town.</i></p>
 
 <hr>
 
 <h2>提交合规摘要</h2>
 
-<table border='1' style='border-collapse:collapse;margin:10px 0;font-size:10pt;font-family:Calibri,"Microsoft YaHei",sans-serif'>
+<table border='1' style='border-collapse:collapse;margin:10px 0;font-size:10pt;font-family:Calibri,sans-serif'>
 <tr style='background:#2E4057;color:white'>
 <th style='padding:6px 12px;text-align:left'>问题</th>
 <th style='padding:6px 12px;text-align:center'>图表数</th>
-<th style='padding:6px 12px;text-align:center'>词数</th>
+<th style='padding:6px 12px;text-align:center'>字数</th>
 <th style='padding:6px 12px;text-align:center'>限制</th>
 <th style='padding:6px 12px;text-align:center'>状态</th>
 </tr>
 <tr>
-<td style='padding:5px 12px'>Q1：EngageTown 人口特征</td>
+<td style='padding:5px 12px'>Q1: EngageTown 人口特征</td>
 <td style='padding:5px 12px;text-align:center'>9</td>
-<td style='padding:5px 12px;text-align:center'>~480</td>
+<td style='padding:5px 12px;text-align:center'>~83</td>
 <td style='padding:5px 12px;text-align:center'>500 词 / 10 幅图</td>
 <td style='padding:5px 12px;text-align:center;color:green'>✓</td>
 </tr>
 <tr style='background:#f5f7fa'>
-<td style='padding:5px 12px'>Q2：社交活动——十项模式</td>
-<td style='padding:5px 12px;text-align:center'>11</td>
-<td style='padding:5px 12px;text-align:center'>~490</td>
+<td style='padding:5px 12px'>Q2: 社交活动——十项模式</td>
+<td style='padding:5px 12px;text-align:center'>12</td>
+<td style='padding:5px 12px;text-align:center'>~118</td>
 <td style='padding:5px 12px;text-align:center'>500 词 / 10 幅图</td>
 <td style='padding:5px 12px;text-align:center;color:green'>✓</td>
 </tr>
 <tr>
-<td style='padding:5px 12px'>Q3：主导产业基础</td>
+<td style='padding:5px 12px'>Q3: 主导产业基础</td>
 <td style='padding:5px 12px;text-align:center'>9</td>
-<td style='padding:5px 12px;text-align:center'>~490</td>
+<td style='padding:5px 12px;text-align:center'>~90</td>
 <td style='padding:5px 12px;text-align:center'>500 词 / 10 幅图</td>
 <td style='padding:5px 12px;text-align:center;color:green'>✓</td>
 </tr>
 <tr style='background:#f5f7fa'>
-<td style='padding:5px 12px'>Q4：EngageTown 城市概览</td>
+<td style='padding:5px 12px'>Q4: EngageTown 城市概览</td>
 <td style='padding:5px 12px;text-align:center'>4</td>
-<td style='padding:5px 12px;text-align:center'>~520</td>
+<td style='padding:5px 12px;text-align:center'>~95</td>
 <td style='padding:5px 12px;text-align:center'>一页</td>
 <td style='padding:5px 12px;text-align:center;color:green'>✓</td>
 </tr>
 <tr style='font-weight:bold;border-top:2px solid #2E4057'>
 <td style='padding:6px 12px'>合计</td>
-<td style='padding:6px 12px;text-align:center'>33</td>
-<td style='padding:6px 12px;text-align:center'>~1,980</td>
+<td style='padding:6px 12px;text-align:center'>34</td>
+<td style='padding:6px 12px;text-align:center'>~386</td>
 <td style='padding:6px 12px;text-align:center'>2,000 词 / 40 幅图</td>
 <td style='padding:6px 12px;text-align:center'></td>
 </tr>

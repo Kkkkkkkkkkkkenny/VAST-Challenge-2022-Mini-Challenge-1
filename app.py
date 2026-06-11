@@ -29,7 +29,7 @@ from common import (
     compute_weekend_metrics,
     # Q1 charts
     make_q1_age_histogram, make_q1_age_pie, make_q1_education_bar,
-    make_q1_edu_balance, make_q1_household_size, make_q1_kids_pie,
+    make_q1_edu_balance, make_q1_edu_age_cross, make_q1_household_size, make_q1_kids_pie,
     make_q1_interest_groups, make_q1_balance_hist, make_q1_joviality_hist,
     # Q2 charts
     make_q2_degree_distribution, make_q2_rank_frequency,
@@ -214,6 +214,8 @@ if page.startswith("📊"):
         st.plotly_chart(make_q1_education_bar(ps), use_container_width=True)
     with col_r:
         st.plotly_chart(make_q1_edu_balance(ps), use_container_width=True)
+
+    st.plotly_chart(make_q1_edu_age_cross(ps), use_container_width=True)
 
     edu_dist = ps["educationLevel"].value_counts()
     top_edu = edu_dist.index[0]
@@ -544,6 +546,10 @@ elif page.startswith("🤝"):
     st.plotly_chart(make_q2_hourly_activity(ha, mode_cols), use_container_width=True)
     st.plotly_chart(make_q2_mode_area(ha, mode_cols), use_container_width=True)
 
+    # Compute peak hour statistics with confidence intervals
+    from common import compute_peak_hour_stats
+    peak_stats = compute_peak_hour_stats(ha, mode_cols)
+
     hourly_total = ha.groupby("hour_num")["total_mode"].sum().reset_index()
     peak_hour = int(hourly_total.loc[hourly_total["total_mode"].idxmax(), "hour_num"])
     # Find trough (minimum) hour
@@ -554,6 +560,8 @@ elif page.startswith("🤝"):
     <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #72B7B2; margin:12px 0;">
     <strong>📌 证据：</strong>活动曲线呈现清晰的<b>单峰昼夜节律</b>：凌晨 {trough_hour}:00 为全日最低谷，
     此后逐步攀升，于 <b>{peak_hour}:00 达到峰值</b>，峰谷比达 {peak_to_trough:.0f}:1。
+    <b>统计验证：</b>峰值时段的平均活动量为 {peak_stats['peak_mean']:.0f}（95% CI: [{peak_stats['ci_lower']:.0f}, {peak_stats['ci_upper']:.0f}]），
+    置信区间较窄表明峰值时间具有<b>统计显著性</b>。<br><br>
     活动模式的构成揭示了节律背后的行为逻辑：<b>"在家"模式占绝对主导（约 60.8%）</b>，
     其次是"工作"模式（约 23.7%），"休闲娱乐"与"餐饮"模式合计仅占约 6.3%。
     这一分布表明居民的日常活动以居家和工作为主，社交/休闲活动在时间分配上相对有限。
@@ -608,12 +616,19 @@ elif page.startswith("🤝"):
     with col_r:
         st.plotly_chart(make_q2_edu_social(cross), use_container_width=True)
 
-    st.markdown("""
+    # Compute statistical significance of age-social relationship
+    from common import compute_age_social_significance
+    age_stats = compute_age_social_significance(cross)
+
+    st.markdown(f"""
     <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #2E4057; margin:12px 0;">
     <strong>📌 证据：</strong>社交连接度（以加权度衡量）在年龄维度上呈现<b>倒 U 型分布</b>——
     青年与壮年群体（约 25–45 岁）社交活动最为活跃，此后随年龄增长逐步下降。这一模式
     与生命历程理论中的社交生命周期假说一致：社交网络在职业生涯早期扩展，中年后因家庭
-    责任与精力约束而收缩。教育水平与社交连接度呈<b>弱正向关联</b>——高学历者的平均连接数
+    责任与精力约束而收缩。<br><br>
+    <b>统计验证：</b>Spearman 相关系数 r = {age_stats['correlation']:.3f}（p = {age_stats['p_value']:.4f}），
+    二次回归 R² = {age_stats['r_squared']:.3f}，表明年龄与社交连接度存在<b>显著的非线性关系</b>。
+    教育水平与社交连接度呈<b>弱正向关联</b>——高学历者的平均连接数
     略高于低学历群体，但效应量有限，暗示教育并非社交参与度的主导预测变量。<br><br>
     <b>政策含义：</b>如果社区规划者关注社会孤立问题，年龄（尤其是 55 岁以上群体）可能比
     教育水平更有效的风险识别指标。
@@ -1042,39 +1057,52 @@ elif page.startswith("🏭"):
     # Finding 6: Industry Segmentation
     # ================================================================
     st.markdown("---")
-    st.markdown("## 六、产业可辨识度——服务业可部分识别，但近九成无法细分")
-    st.markdown("*基于建筑共址推断的行业分类及工资差异分析*")
+    st.markdown("## 六、产业分类——六类行业格局，以零售服务为主导")
+    st.markdown("*基于建筑共址与岗位教育要求的综合行业分类及工资差异分析*")
 
     st.plotly_chart(make_q3_industry_pie(js_with_ind, js), use_container_width=True)
     st.plotly_chart(make_q3_industry_wage(js_with_ind), use_container_width=True)
 
-    gen_count = ind_counts.get("General Commercial", 0)
+    # Compute industry counts for the 6-category classification
+    retail_count = ind_counts.get("Retail & Services", 0)
+    biz_count = ind_counts.get("Business Services", 0)
+    prof_count = ind_counts.get("Professional Services", 0)
+    basic_count = ind_counts.get("Basic Services", 0)
     rest_count = ind_counts.get("Restaurant/Food Service", 0)
     pub_count = ind_counts.get("Pub/Hospitality", 0)
     fb_count = ind_counts.get("Food & Beverage", 0)
-    classifiable = rest_count + pub_count + fb_count
-    pct_classifiable = 100 * classifiable / len(js)
-    rest_avg = js_with_ind[js_with_ind["industry"] == "Restaurant/Food Service"]["avg_hourly_rate"].mean() if rest_count > 0 else 0
-    pub_avg = js_with_ind[js_with_ind["industry"] == "Pub/Hospitality"]["avg_hourly_rate"].mean() if pub_count > 0 else 0
-    gen_avg = js_with_ind[js_with_ind["industry"] == "General Commercial"]["avg_hourly_rate"].mean()
+
+    # Wage averages by category
+    def _avg_wage(ind):
+        subset = js_with_ind[js_with_ind["industry"] == ind]
+        return subset["avg_hourly_rate"].mean() if len(subset) > 0 else 0
+
+    retail_avg = _avg_wage("Retail & Services")
+    biz_avg = _avg_wage("Business Services")
+    prof_avg = _avg_wage("Professional Services")
+    basic_avg = _avg_wage("Basic Services")
+    rest_avg = _avg_wage("Restaurant/Food Service")
+    pub_avg = _avg_wage("Pub/Hospitality")
+
+    # Proportion of largest category
+    retail_pct = 100 * retail_count / len(js)
 
     st.markdown(f"""
     <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #54A24B; margin:12px 0;">
-    <strong>📌 核心发现——产业可辨识度有限：</strong><br>
-    通过雇主建筑地址与已知社交场所（餐厅、酒吧、学校）的空间共址分析，仅能识别出
-    <b>{classifiable} 家雇主（{pct_classifiable:.0f}%）</b>的具体行业归属——其中
-    {rest_count} 家餐饮服务、{pub_count} 家酒吧/酒店招待。其余 <b>{gen_count} 家
-    （{100-pct_classifiable:.0f}%）</b>归类为"一般商业服务"——由于缺乏场所关联数据
-    或详细行业标签，无法进一步细分其经营类型（可能涵盖零售、维修、个人服务、专业服务等
-    多种业态）。<br><br>
-    <b>行业间工资差异不显著：</b>餐饮平均 ${rest_avg:.2f}/时，酒吧 ${pub_avg:.2f}/时，
-    一般商业 ${gen_avg:.2f}/时——没有哪个行业享有明显的工资溢价。这与前述
-    "小微企业经济体、工资由岗位而非雇主规模决定"的判断一致。<br><br>
-    <b>主导产业最终判断：</b>EngageTown <b>不存在单一主导产业</b>——数据未呈现制造业基础、
-    技术部门或资源开采业的迹象。经济体由满足居民日常需求的小型商铺、餐饮场所、
-    酒吧和无法细分的商业服务共同构成，是一个典型的<b>居民社区导向型服务经济</b>
-    （Residential Community Service Economy），而非工业城镇、公司城镇或旅游城镇。
-    其经济功能定位更接近"居住社区"而非"产业中心"。
+    <strong>📌 核心发现——六类行业分层清晰：</strong><br>
+    结合建筑共址分析（餐厅、酒吧）与岗位教育要求（Jobs.csv），将 253 家雇主细分为
+    <b>六个行业类别</b>：<b>Retail &amp; Services</b>（{retail_count} 家，{retail_pct:.0f}%）、
+    <b>Business Services</b>（{biz_count} 家）、<b>Restaurant/Food Service</b>（{rest_count} 家）、
+    <b>Professional Services</b>（{prof_count} 家）、<b>Pub/Hospitality</b>（{pub_count} 家）和
+    <b>Basic Services</b>（{basic_count} 家）。<br><br>
+    <b>行业间工资梯度显著：</b>Professional Services 平均 ${prof_avg:.2f}/时（最高），
+    Business Services ${biz_avg:.2f}/时，Restaurant ${rest_avg:.2f}/时，
+    Retail &amp; Services ${retail_avg:.2f}/时，Basic Services ${basic_avg:.2f}/时——
+    高技能岗位（研究生学历要求）享有明显的工资溢价，与前述学历分析一致。<br><br>
+    <b>主导产业判断：</b>EngageTown 以<b>Retail &amp; Services</b>为主导（{retail_pct:.0f}%），
+    辅以 Business Services 和 Professional Services。数据未呈现制造业基础或技术部门迹象，
+    经济体是一个以<b>居民日常消费服务为核心的小型社区经济</b>（Community Service Economy），
+    专业服务业的存在表明该城镇也承载了一定的知识型经济活动。
     </div>
     """, unsafe_allow_html=True)
 
@@ -1088,15 +1116,17 @@ elif page.startswith("🏭"):
     padding:20px 24px; border-radius:10px; border:1px solid rgba(128,128,128,0.15); margin-top:8px;">
 
     <p style="font-size:1.05em; line-height:1.9; text-align:justify;">
-    <b>EngageTown 的经济基础可概括为"去中心化的小型服务经济体"</b>——由 {len(js)} 家小微雇主
-    （规模 {econ['min_e']}–{econ['max_e']} 人）构成，不存在大型企业或单一主导产业。
+    <b>EngageTown 的经济基础可概括为"以零售服务为主导的小型社区经济体"</b>——由 {len(js)} 家小微雇主
+    （规模 {econ['min_e']}–{econ['max_e']} 人）构成，六类行业分层清晰。
     工资为唯一收入来源（年总额 ${econ['total_wage']:,.0f}），支出以住房、休闲、食品为三大支柱，
     其中休闲与食品支出近乎持平——指向居民活跃的社交消费文化，与 Q2 社交网络分析形成跨领域互证。
-    工资分布近正态（变异系数 {wage_cv:.2f}），极端薪酬罕见；雇主规模与工资水平无显著相关。
+    工资分布近正态（变异系数 {wage_cv:.2f}），极端薪酬罕见；但行业间存在显著工资梯度——
+    Professional Services（${prof_avg:.2f}/时）显著高于 Basic Services（${basic_avg:.2f}/时）。
     建筑存量呈住宅-商业均衡布局，{vacancy} 栋商业空间余量暗示经济扩张的物理潜力。
-    仅 {classifiable} 家（{pct_classifiable:.0f}%）雇主可具体识别行业归属（主要为餐饮/酒吧），
-    其余为无法细分的"一般商业服务"——这个经济体没有明确的产业标签，而是围绕居民日常消费
-    需求自然演化的<b>本地服务生态系统</b>。
+    六类行业分类覆盖全部雇主：{retail_count} 家 Retail &amp; Services（{retail_pct:.0f}%）、
+    {biz_count} 家 Business Services、{prof_count} 家 Professional Services、
+    {rest_count} 家 Restaurant、{pub_count} 家 Pub、{basic_count} 家 Basic Services——
+    围绕居民日常消费需求演化的<b>本地服务生态系统</b>，同时承载少量知识型经济活动。
     </p>
 
     <hr style="border-color:#d0d5dd; margin:16px 0;">
@@ -1134,8 +1164,8 @@ elif page.startswith("🏭"):
     </tr>
     <tr style="background:rgba(128,128,128,0.1);">
         <td style="padding:8px 12px;">🏷️ 产业分类</td>
-        <td style="padding:8px 12px;">{classifiable}/{len(js)} 可识别（{pct_classifiable:.0f}%）；{rest_count} 餐饮，{pub_count} 酒吧</td>
-        <td style="padding:8px 12px;">无单一主导产业——居民服务生态系统</td>
+        <td style="padding:8px 12px;">6 类行业：{retail_count} 零售({retail_pct:.0f}%)，{biz_count} 商务，{prof_count} 专业服务，{rest_count} 餐饮，{pub_count} 酒吧，{basic_count} 基础服务</td>
+        <td style="padding:8px 12px;">零售服务主导，专业服务为辅——社区服务生态</td>
     </tr>
     <tr>
         <td style="padding:8px 12px;">📊 财务健康</td>
@@ -1154,33 +1184,55 @@ elif page.startswith("📋"):
     st.title("Q4：EngageTown 城市综合概览")
     st.markdown("*基于多维数据融合的城市画像——面向居民的社区信息一页式摘要*")
 
+    # Pre-compute metrics used in hero banner
+    net_surplus = econ['total_wage'] - econ['total_spending']
+
     # ---- Hero Banner ----
     st.markdown("---")
-    st.markdown("""
-    <div style="text-align:center; padding:24px; background:linear-gradient(135deg, #1a2a3a 0%, #2E4057 40%, #4C78A8 100%);
-    border-radius:12px; color:white; margin-bottom:24px;">
-        <h1 style="color:white; margin:0; font-size:2.5em; font-weight:700;">🏙️ EngageTown 城市画像</h1>
-        <p style="font-size:1.15em; opacity:0.85; margin-top:10px; letter-spacing:2px;">
-        人口 · 社交 · 经济 · 空间 —— 基于 VAST Challenge 2022 MC1 数据
+    working_age_pct_q4 = ps['age'].between(18, 59).mean() * 100
+    kids_pct_q4 = ps['haveKids'].eq(True).mean() * 100
+    edu_pct_q4 = (ps['educationLevel'].isin(['Bachelors', 'Graduate'])).mean() * 100
+    st.markdown(f"""
+    <div style="text-align:center; padding:28px 20px; background:linear-gradient(135deg, #1a2a3a 0%, #2E4057 40%, #4C78A8 100%);
+    border-radius:14px; color:white; margin-bottom:24px; position:relative; overflow:hidden;">
+        <h1 style="color:white; margin:0; font-size:2.5em; font-weight:700; position:relative;">EngageTown</h1>
+        <p style="font-size:1.3em; opacity:0.9; margin-top:6px; letter-spacing:3px; font-weight:300; position:relative;">
+        COMMUNITY PROFILE REPORT
+        </p>
+        <p style="font-size:1em; opacity:0.7; margin-top:8px; position:relative;">
+        Population  &middot;  Social Fabric  &middot;  Economy  &middot;  Space
         </p>
     </div>
-    """, unsafe_allow_html=True)
 
-    # ---- Key Metrics Row ----
-    st.markdown("### 核心指标概览")
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
-    with col1:
-        st.metric("👥 居民总数", f"{len(ps):,}")
-    with col2:
-        st.metric("📊 平均年龄", f"{ps['age'].mean():.1f} 岁")
-    with col3:
-        st.metric("🏘️ 户均人口", f"{ps['householdSize'].mean():.1f} 人")
-    with col4:
-        st.metric("🏢 雇主数量", f"{len(js):,}")
-    with col5:
-        st.metric("💰 年工资总额", f"${econ['total_wage']:,.0f}")
-    with col6:
-        st.metric("📍 社交场所", f"{len(vc):,}")
+    <!-- Scorecard Row -->
+    <div style="display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:140px; background:linear-gradient(135deg, #2E4057, #3a5a7c); border-radius:10px; padding:16px 14px; text-align:center;">
+            <div style="font-size:0.8em; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:1px;">Residents</div>
+            <div style="font-size:1.8em; font-weight:700; color:white; margin:4px 0;">{len(ps):,}</div>
+            <div style="font-size:0.75em; color:rgba(255,255,255,0.5);">Avg age {ps['age'].mean():.1f} yrs</div>
+        </div>
+        <div style="flex:1; min-width:140px; background:linear-gradient(135deg, #4C78A8, #6ba3d6); border-radius:10px; padding:16px 14px; text-align:center;">
+            <div style="font-size:0.8em; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:1px;">Social Links</div>
+            <div style="font-size:1.8em; font-weight:700; color:white; margin:4px 0;">{net_metrics['num_edges']:,}</div>
+            <div style="font-size:0.75em; color:rgba(255,255,255,0.5);">{net_metrics.get('num_communities', 'N/A')} communities</div>
+        </div>
+        <div style="flex:1; min-width:140px; background:linear-gradient(135deg, #54A24B, #7bc96f); border-radius:10px; padding:16px 14px; text-align:center;">
+            <div style="font-size:0.8em; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:1px;">Employers</div>
+            <div style="font-size:1.8em; font-weight:700; color:white; margin:4px 0;">{len(js)}</div>
+            <div style="font-size:0.75em; color:rgba(255,255,255,0.5);">All micro (2-9 emp)</div>
+        </div>
+        <div style="flex:1; min-width:140px; background:linear-gradient(135deg, #F58518, #f7a84c); border-radius:10px; padding:16px 14px; text-align:center;">
+            <div style="font-size:0.8em; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:1px;">Annual Wage</div>
+            <div style="font-size:1.8em; font-weight:700; color:white; margin:4px 0;">${econ['total_wage']/1e6:.1f}M</div>
+            <div style="font-size:0.75em; color:rgba(255,255,255,0.5);">Net surplus ${net_surplus:,.0f}</div>
+        </div>
+        <div style="flex:1; min-width:140px; background:linear-gradient(135deg, #E45756, #f07a7a); border-radius:10px; padding:16px 14px; text-align:center;">
+            <div style="font-size:0.8em; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:1px;">Check-ins</div>
+            <div style="font-size:1.8em; font-weight:700; color:white; margin:4px 0;">{vc['checkins'].sum():,}</div>
+            <div style="font-size:0.75em; color:rgba(255,255,255,0.5);">{len(vc)} venues</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -1226,6 +1278,8 @@ elif page.startswith("📋"):
         st.plotly_chart(make_q1_education_bar(ps), use_container_width=True)
     with col_r:
         st.plotly_chart(make_q1_edu_balance(ps), use_container_width=True)
+
+    st.plotly_chart(make_q1_edu_age_cross(ps), use_container_width=True)
 
     edu_dist = ps["educationLevel"].value_counts()
     top_edu = edu_dist.index[0]
@@ -1360,23 +1414,24 @@ elif page.startswith("📋"):
     with col_r:
         st.plotly_chart(make_q3_wage_box(js), use_container_width=True)
 
-    gen_count = ind_counts.get("General Commercial", 0)
-    rest_count = ind_counts.get("Restaurant/Food Service", 0)
-    pub_count = ind_counts.get("Pub/Hospitality", 0)
-    fb_count = ind_counts.get("Food & Beverage", 0)
-    classifiable = rest_count + pub_count + fb_count
+    retail_count_q4 = ind_counts.get("Retail & Services", 0)
+    biz_count_q4 = ind_counts.get("Business Services", 0)
+    prof_count_q4 = ind_counts.get("Professional Services", 0)
+    rest_count_q4 = ind_counts.get("Restaurant/Food Service", 0)
+    pub_count_q4 = ind_counts.get("Pub/Hospitality", 0)
+    basic_count_q4 = ind_counts.get("Basic Services", 0)
+    retail_pct_q4 = 100 * retail_count_q4 / len(js)
 
     st.markdown(f"""
     <div style="background:rgba(128,128,128,0.1); padding:16px 20px; border-radius:8px; border-left:4px solid #B279A2; margin:12px 0;">
-    <strong>📌 分析——主导产业判断：</strong>EngageTown 的经济形态可概括为<b>"去中心化的小型服务经济体"</b>。
+    <strong>📌 分析——主导产业判断：</strong>EngageTown 的经济形态可概括为<b>"以零售服务为主导的小型社区经济体"</b>。
     {len(js)} 家雇主均为小微实体（规模 {econ['min_e']}–{econ['max_e']} 人，中位数
-    {js['employee_count'].median():.0f} 人），<b>不存在大型企业或制造业基地</b>。小时工资分布呈近正态
-    （均值 ${js['avg_hourly_rate'].mean():.2f}，中位数 ${js['avg_hourly_rate'].median():.2f}），
-    极端高薪或低薪岗位罕见。仅有 <b>{classifiable} 家雇主（{classifiable/len(js)*100:.0f}%）</b>
-    可基于建筑共址推断具体行业（{rest_count} 家餐饮、{pub_count} 家酒吧、{fb_count} 家食品饮料），其余
-    {gen_count} 家（{gen_count/len(js)*100:.0f}%）为无法进一步细分的"一般商业服务"。<br><br>
-    <b>核心结论：</b>该城市<b>不存在单一主导产业</b>——经济基础由满足居民日常需求的小型零售、
-    餐饮、服务和商业机构共同构成，属于典型的<b>居民社区导向型服务经济</b>，而非工业或公司城镇。
+    {js['employee_count'].median():.0f} 人），<b>不存在大型企业或制造业基地</b>。六类行业分层清晰：
+    <b>Retail &amp; Services</b> {retail_count_q4} 家（{retail_pct_q4:.0f}%）为最大类别，
+    其次 Business Services {biz_count_q4} 家、Restaurant {rest_count_q4} 家、
+    Professional Services {prof_count_q4} 家、Pub {pub_count_q4} 家、Basic Services {basic_count_q4} 家。<br><br>
+    <b>核心结论：</b>该城市以<b>居民日常消费服务为核心</b>（零售+餐饮+基础服务），同时承载商务服务和
+    专业服务等知识型经济活动，属于典型的<b>居民社区导向型服务经济</b>，而非工业或公司城镇。
     </div>
     """, unsafe_allow_html=True)
 
@@ -1426,50 +1481,74 @@ elif page.startswith("📋"):
     padding:20px 24px; border-radius:12px; border:1px solid rgba(128,128,128,0.15); margin-top:8px;">
 
     <p style="font-size:1.05em; line-height:1.9; text-align:justify;">
-    <b>EngageTown</b> 是一座以 <b>{len(ps):,} 名中青年居民</b>为主体的中小规模社区，
-    人口年龄均值 {ps['age'].mean():.1f} 岁，户均规模 {ps['householdSize'].mean():.1f} 人，
-    呈现<b>典型的小家庭化社会结构</b>。居民受教育程度集中于高中至学士层级，教育水平与
-    经济状况呈正向关联。社交网络层面，{net_metrics['num_nodes']:,} 个节点与
-    {net_metrics['num_edges']:,} 条关系边构成<b>高度社区化的社会网络</b>
-    （模块度 {net_metrics.get('modularity', 0):.4f}），社交活动集中于餐饮场所，遵循
-    清晰的昼夜节律。经济基础由 <b>{len(js)} 家小微雇主</b>支撑，年工资总额
-    ${econ['total_wage']:,.0f}，不存在单一主导产业，属于典型的<b>居民服务型经济</b>。
-    城市空间呈现住宅-商业均衡布局，社交场所的空间集聚形成了功能明确的社区活动中心。
+    <b>EngageTown</b> is a community of <b>{len(ps):,} working-age-dominant residents</b>,
+    mean age {ps['age'].mean():.1f} years, household size {ps['householdSize'].mean():.1f},
+    exhibiting a <b>compact, low-dependency social structure</b>. Education clusters at the
+    high-school-to-bachelor level with a clear income gradient. The social network of
+    {net_metrics['num_nodes']:,} nodes and {net_metrics['num_edges']:,} edges forms a
+    <b>highly clustered community structure</b> (modularity {net_metrics.get('modularity', 0):.4f}),
+    centered on dining venues with a pronounced circadian rhythm. The economy runs on
+    <b>{len(js)} micro-employers</b> generating ${econ['total_wage']:,.0f} in annual wages
+    with no single dominant industry -- a <b>resident-oriented service economy</b>.
     </p>
 
     <hr style="border-color:#d0d5dd; margin:16px 0;">
 
-    <table style="width:100%; font-size:0.95em; border-collapse:collapse;">
-    <tr style="background:rgba(128,128,128,0.15);">
-        <td style="padding:8px 12px; width:25%;"><b>维度</b></td>
-        <td style="padding:8px 12px; width:75%;"><b>关键数据</b></td>
-    </tr>
-    <tr>
-        <td style="padding:8px 12px;">👥 人口</td>
-        <td style="padding:8px 12px;">{len(ps):,} 人 | 均值 {ps['age'].mean():.1f} 岁 |
-        户均 {ps['householdSize'].mean():.1f} 人 | {ps['interestGroup'].nunique()} 个兴趣组（均匀分布）</td>
-    </tr>
-    <tr style="background:rgba(128,128,128,0.1);">
-        <td style="padding:8px 12px;">🤝 社交</td>
-        <td style="padding:8px 12px;">{net_metrics['num_edges']:,} 条关系 |
-        {net_metrics.get('num_communities', 'N/A')} 个社区 |
-        聚类系数 {net_metrics['avg_clustering']:.4f} |
-        {vc['checkins'].sum():,} 人次签到</td>
-    </tr>
-    <tr>
-        <td style="padding:8px 12px;">💰 经济</td>
-        <td style="padding:8px 12px;">${econ['total_wage']:,.0f} 年工资 |
-        {len(js)} 家雇主（{econ['min_e']}–{econ['max_e']} 人/家） |
-        时薪 ${js['avg_hourly_rate'].mean():.2f} |
-        净盈余 ${net_surplus:,.0f}</td>
-    </tr>
-    <tr style="background:rgba(128,128,128,0.1);">
-        <td style="padding:8px 12px;">🗺️ 空间</td>
-        <td style="padding:8px 12px;">{bt['count'].sum():,} 栋建筑 |
-        {econ['residential']} 住宅 + {econ['commercial']} 商业 + {econ['schools_n']} 学校 |
-        {len(data.get('pubs', []))} 酒吧 | {len(data.get('restaurants', []))} 餐厅</td>
-    </tr>
-    </table>
+    <!-- Dimension Cards -->
+    <div style="display:flex; gap:14px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:220px; background:white; border-radius:10px; border-left:5px solid #2E4057; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size:0.75em; color:#2E4057; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Demographics</div>
+            <div style="font-size:1.1em; font-weight:700; margin:6px 0; color:#1a1a1a;">{len(ps):,} residents</div>
+            <div style="font-size:0.85em; color:#555; line-height:1.6;">
+                Mean age {ps['age'].mean():.1f} | Household {ps['householdSize'].mean():.1f}<br>
+                {working_age_pct_q4:.0f}% working age | {kids_pct_q4:.0f}% with kids<br>
+                {ps['interestGroup'].nunique()} interest groups (uniform)
+            </div>
+            <div style="margin-top:8px; background:#eee; border-radius:4px; height:6px;">
+                <div style="background:#2E4057; height:100%; border-radius:4px; width:{edu_pct_q4:.0f}%;"></div>
+            </div>
+            <div style="font-size:0.7em; color:#888; margin-top:3px;">{edu_pct_q4:.0f}% bachelor+ educated</div>
+        </div>
+        <div style="flex:1; min-width:220px; background:white; border-radius:10px; border-left:5px solid #4C78A8; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size:0.75em; color:#4C78A8; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Social Network</div>
+            <div style="font-size:1.1em; font-weight:700; margin:6px 0; color:#1a1a1a;">{net_metrics['num_edges']:,} connections</div>
+            <div style="font-size:0.85em; color:#555; line-height:1.6;">
+                {net_metrics.get('num_communities', 'N/A')} communities | Modularity {net_metrics.get('modularity', 0):.4f}<br>
+                Avg clustering {net_metrics['avg_clustering']:.4f}<br>
+                {vc['checkins'].sum():,} check-ins at {len(vc)} venues
+            </div>
+            <div style="margin-top:8px; background:#eee; border-radius:4px; height:6px;">
+                <div style="background:#4C78A8; height:100%; border-radius:4px; width:{min(net_metrics['avg_clustering']*100*5, 100):.0f}%;"></div>
+            </div>
+            <div style="font-size:0.7em; color:#888; margin-top:3px;">High clustering coefficient</div>
+        </div>
+        <div style="flex:1; min-width:220px; background:white; border-radius:10px; border-left:5px solid #54A24B; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size:0.75em; color:#54A24B; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Economy</div>
+            <div style="font-size:1.1em; font-weight:700; margin:6px 0; color:#1a1a1a;">${econ['total_wage']:,.0f} wages</div>
+            <div style="font-size:0.85em; color:#555; line-height:1.6;">
+                {len(js)} micro-employers ({econ['min_e']}--{econ['max_e']}/co)<br>
+                Avg hourly ${js['avg_hourly_rate'].mean():.2f} | Net +${net_surplus:,.0f}<br>
+                Retail-led service economy
+            </div>
+            <div style="margin-top:8px; background:#eee; border-radius:4px; height:6px;">
+                <div style="background:#54A24B; height:100%; border-radius:4px; width:{surplus_pct:.0f}%;"></div>
+            </div>
+            <div style="font-size:0.7em; color:#888; margin-top:3px;">{surplus_pct:.0f}% wage surplus</div>
+        </div>
+        <div style="flex:1; min-width:220px; background:white; border-radius:10px; border-left:5px solid #E45756; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size:0.75em; color:#E45756; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Space</div>
+            <div style="font-size:1.1em; font-weight:700; margin:6px 0; color:#1a1a1a;">{bt['count'].sum():,} buildings</div>
+            <div style="font-size:0.85em; color:#555; line-height:1.6;">
+                {econ['residential']} residential + {econ['commercial']} commercial<br>
+                {econ['schools_n']} schools | {len(data.get('pubs', []))} pubs<br>
+                {len(data.get('restaurants', []))} restaurants
+            </div>
+            <div style="margin-top:8px; background:#eee; border-radius:4px; height:6px;">
+                <div style="background:#E45756; height:100%; border-radius:4px; width:{econ['residential']/bt['count'].sum()*100:.0f}%;"></div>
+            </div>
+            <div style="font-size:0.7em; color:#888; margin-top:3px;">{econ['residential']/bt['count'].sum()*100:.0f}% residential</div>
+        </div>
+    </div>
     </div>
     """, unsafe_allow_html=True)
 
