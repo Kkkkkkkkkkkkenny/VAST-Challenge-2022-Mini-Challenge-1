@@ -258,10 +258,28 @@ processed/*.parquet（14 个文件，~1.3MB）
 - Python 3.11+
 - 约 4GB 磁盘空间（原始 CSV ~3GB）
 
-### 安装依赖
+### 一键安装（推荐）
 
 ```bash
-pip install pandas fastparquet plotly streamlit networkx kaleido
+# Linux / macOS / WSL
+bash setup.sh
+
+# Windows
+双击 setup.bat
+```
+
+脚本会自动：检查 Python 版本 → 创建虚拟环境 → 安装所有依赖 → 检查数据状态。
+
+### 手动安装
+
+```bash
+# 创建虚拟环境（推荐）
+python3 -m venv venv
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate   # Windows
+
+# 安装依赖
+pip install -r requirements.txt
 ```
 
 ### 运行步骤
@@ -313,6 +331,9 @@ python3 export_answer_sheet.py
 | `common.py` | 共享引擎：数据加载、图表生成、网络分析 | ~1,218 行 |
 | `process_data.py` | 数据管道：原始 CSV → 14 个 parquet | ~494 行 |
 | `export_answer_sheet.py` | 静态导出：33 张 PNG + index.htm | ~916 行 |
+| `requirements.txt` | Python 依赖包版本锁定 | - |
+| `setup.sh` | Linux/macOS 一键配置脚本 | - |
+| `setup.bat` | Windows 一键配置脚本 | - |
 | `Answer Sheets/index.htm` | 最终提交的答题卷 HTML | ~450 行 |
 
 ### 架构关系
