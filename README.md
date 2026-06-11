@@ -1,56 +1,262 @@
 # VAST Challenge 2022 — Mini-Challenge 1: EngageTown
 
-EngageTown 虚构城市的可视化分析项目。参与 [IEEE VAST Challenge 2022](https://vast-challenge.github.io/2022/) Mini-Challenge 1，用数据回答 4 个问题，产出分析报告式 Dashboard 和答题卷（Answer Sheet HTML）。
+> **项目目标**：对虚构城市 EngageTown 的 1,011 名居民进行可视化分析，回答 4 个问题，产出分析报告式 Dashboard 和提交用答题卷（Answer Sheet HTML）。
 
 ---
 
 ## 目录
 
-- [项目概览](#项目概览)
-- [快速上手](#快速上手)
-- [项目结构](#项目结构)
-- [GitHub 上传准备](#github-上传准备)
-- [技术栈与依赖](#技术栈与依赖)
-- [数据流与工作流程](#数据流与工作流程)
-- [关键架构决策](#关键架构决策)
-- [本阶段变更记录（2026-06-02 → 2026-06-10）](#本阶段变更记录)
-- [当前产出状态](#当前产出状态)
-- [待完成工作](#待完成工作)
-- [已知问题](#已知问题)
-- [给接手指南](#给接手指南)
-- [参考文献](#参考文献)
+- [一、项目概览](#一项目概览)
+- [二、四个问题与核心发现](#二四个问题与核心发现)
+- [三、全部图表一览（PPT 素材）](#三全部图表一览ppt-素材)
+- [四、分析方法论](#四分析方法论)
+- [五、关键数据指标](#五关键数据指标)
+- [六、项目运行方法](#六项目运行方法)
+- [七、项目文件结构](#七项目文件结构)
+- [八、技术栈](#八技术栈)
+- [九、PPT 制作建议](#九ppt-制作建议)
+- [十、参考文献](#十参考文献)
 
 ---
 
-## 项目概览
+## 一、项目概览
 
-| 维度 | 现状 |
+| 维度 | 内容 |
 |------|------|
-| **目标** | 完成 MC1 四问分析，产出 Answer Sheet HTML 提交 |
-| **数据规模** | 1.14 亿条活动日志 + 13.5M 条日志 / 1,011 名志愿者 / 15 个月 |
-| **核心产出** | `app.py`（分析 Dashboard）+ `Answer Sheets/index.htm`（最终提交） |
-| **支持文件** | `common.py`（共享分析引擎）+ `process_data.py`（数据管道）+ `export_answer_sheet.py`（静态导出） |
-| **总代码量** | ~4,600 行 Python + ~550 行 HTML |
-| **当前版本** | V2.1（2026-06-10） |
-
-**四个问题：**
-
-| Q | 主题 | 图表 | 词限 | 已产出 |
-|---|------|------|------|--------|
-| Q1 | 人口特征 | 9 幅 | 500 词 | 5 项发现 + 交叉分析 |
-| Q2 | 社交活动 | 11 幅 | 500 词 | 10 项社交模式（三板块） |
-| Q3 | 商业经济 | 9 幅 | 500 词 | 5 项经济发现 + 产业判定 |
-| Q4 | 城市概览 | 4 幅 | 一页 | 信息图 + 场所地图 |
+| **赛题** | IEEE VAST Challenge 2022 — Mini-Challenge 1 |
+| **主题** | EngageTown 虚构城市的多维可视化分析 |
+| **数据规模** | 1.14 亿条活动日志 + 1,350 万条日志，覆盖 1,011 名居民，时间跨度 15 个月（2022.03–2023.05） |
+| **分析维度** | 人口特征（Q1）、社交活动（Q2）、商业经济（Q3）、城市概览（Q4） |
+| **核心产出** | Streamlit 交互式 Dashboard + 静态 Answer Sheet HTML（含 33 张图表） |
+| **团队** | 王甬拓、周晨旭、孙瑞笙、张雅晨、杨哲瑞（大数据 2302） |
+| **工具** | Python、Streamlit、Plotly、NetworkX、Pandas、Kaleido |
 
 ---
 
-## 快速上手
+## 二、四个问题与核心发现
+
+### Q1：EngageTown 的人口特征是什么？
+
+**核心结论**：EngageTown 是一个以劳动年龄人口为主体、家庭规模较小、经济状况中等、社会兴趣多元化的社区。
+
+| 发现 | 关键数据 | 对应图表 |
+|------|----------|----------|
+| **年龄结构** | 平均年龄 39.1 岁，中位数 39 岁，30–44 岁占比最大 | 图 1.1、1.2 |
+| **教育水平** | "高中或大学肄业"最普遍，其次是"学士" | 图 1.3 |
+| **教育-经济关联** | 教育水平与可用余额正相关：研究生 > 学士 > 高中 > 低 | 图 1.4 |
+| **家庭规模** | 户均 2.0 人，37% 为二人户，极少超过 3 人 | 图 1.5 |
+| **子女状况** | 约 30% 的居民有子女 | 图 1.6 |
+| **兴趣组** | 10 个兴趣组（A–J），每组约 101 人，近乎均匀分布 | 图 1.7 |
+| **经济状况** | 余额右偏分布，愉悦指数近似正态（均值 0.504） | 图 1.8、1.9 |
+
+**深层洞察**：人口结构揭示了一个"自我强化的循环"——劳动年龄人口聚集支撑小微企业，小微企业就业机会又吸引年轻劳动力流入。但极低的老年人口占比意味着社区缺乏代际传承机制，小家庭化趋势意味着社区长期增长依赖外部迁入。
+
+---
+
+### Q2：社交活动有哪些显著模式？
+
+**核心结论**：识别出 10 项显著社交模式，揭示 EngageTown 的社交生态是一个高度自组织的系统。
+
+| 模式 | 发现 | 关键数据 | 对应图表 |
+|------|------|----------|----------|
+| **模式一** | 近似正态的度分布 | 大多数居民维持相似规模的社交圈，无"超级连接者" | 图 2.1 |
+| **模式二** | 强社区结构 | 28 个 Louvain 社区，模块度 Q=0.5194 | 图 2.2 |
+| **模式三** | 高局部聚类 | 平均聚类系数 0.0714，远高于网络密度 0.1738 | 图 2.3 |
+| **模式四** | 场所类型偏好 | 公寓 37.6% > 工作场所 24.2% > 餐厅 21.3% > 酒吧 16.9% | 图 2.4 |
+| **模式五** | 昼夜节律 | 傍晚 17:00–19:00 达峰值，周末峰值后移约 2 小时 | 图 2.5、2.6 |
+| **模式六** | 年龄-连接度曲线 | 25–45 岁最活跃，随年龄增长下降 | 图 2.7 |
+| **模式七** | 关键桥接个体 | 少数人介数中心性高出平均值数个数量级 | 图 2.8 |
+| **模式八** | 互动频率异质性 | 边权重高度右偏（均值 28.3，最大值 963） | 图 2.9 |
+| **模式九** | 社交/休闲出行主导 | 社交和休闲出行占主导，通勤占比较低 | 图 2.10 |
+| **模式十** | 社交场所空间集聚 | 场所在特定区域集聚，形成社区规模的社交中心 | 图 2.11、2.12 |
+
+**深层洞察**：度分布均质化（模式一）与强社区结构（模式二）形成张力——前者意味着社交机会均等，后者意味着信息流动存在壁垒。休闲支出与食品支出持平（模式九）暗示居民将社交视为基本需求而非可选消费。
+
+---
+
+### Q3：EngageTown 的主导产业基础是什么？
+
+**核心结论**：EngageTown 的经济是由小微企业构成的分布式生态系统，而非单一主导产业——判定为"地方服务生态系统"。
+
+| 发现 | 关键数据 | 对应图表 |
+|------|----------|----------|
+| **小微企业主导** | 全部 253 家雇主均为小微企业（2–9 人），均值 5.2 人 | 图 3.1 |
+| **财务结构** | 工资为唯一收入来源（年总额 $55.6M），住房/休闲/食品主导支出 | 图 3.2、3.3 |
+| **工资结构** | 时薪 $10.01–$40.86，均值 $19.22，近正态分布 | 图 3.4、3.5 |
+| **建筑构成** | 1,042 栋建筑：526 栋住宅（50%）、512 栋商业（49%）、4 所学校 | 图 3.6 |
+| **行业分类** | 仅 28/253 家（11%）可分类为餐饮/酒吧，89% 为未分化商业 | 图 3.7、3.8 |
+| **每日现金流** | 双周工资周期，支出紧随收入，净流量徘徊于零附近 | 图 3.9 |
+
+**深层洞察**：高度分散化恰恰是抗风险能力的来源——没有单一企业"大到不能倒"。但代价是工资天花板效应（高技能人才缺乏上升通道）和创新困境（小微企业缺乏研发能力）。
+
+---
+
+### Q4：EngageTown 城市概览
+
+**核心结论**：EngageTown 是一个小型、互联、均衡的社区——邻里相知，本地企业服务本地需求，社交生活围绕共享餐食、外出夜晚和多元兴趣组蓬勃发展。
+
+| 板块 | 关键指标 | 对应图表 |
+|------|----------|----------|
+| **我们是谁** | 1,011 居民，平均年龄 39 岁，户均 2.0 人 | 图 4.1 |
+| **我们如何生活** | 80,483 条社交连接，28 个社区，12 酒吧 + 20 餐厅 + 4 学校 | 图 4.2 |
+| **我们的经济** | 253 家小型企业，年工资 $55.6M，最大支出为住房 | 图 4.3 |
+| **我们的场所** | 地图展示酒吧、餐厅、学校的空间分布 | 图 4.4 |
+
+**综合洞察**：EngageTown 的核心特质是"小型均衡中的隐性脆弱"——人口-经济均衡、空间均衡、社交均衡并存，但代际断层、经济单一性、社交脆弱性是三个结构性风险。
+
+---
+
+## 三、全部图表一览（PPT 素材）
+
+### Q1 图表（9 张）
+
+| 编号 | 文件名 | 图表类型 | 内容说明 |
+|------|--------|----------|----------|
+| 图 1.1 | `chart_q1_01_age_hist.png` | 直方图 | 年龄分布，标注均值（39.1）和中位数（39） |
+| 图 1.2 | `chart_q1_02_age_pie.png` | 饼图 | 年龄组构成（<20、20–29、30–44、45–59、60+） |
+| 图 1.3 | `chart_q1_03_education_bar.png` | 柱状图 | 教育水平分布（低、高中或大学肄业、学士、研究生） |
+| 图 1.4 | `chart_q1_04_edu_balance.png` | 柱状图 | 教育水平 × 平均可用余额（带误差线） |
+| 图 1.5 | `chart_q1_05_household_size.png` | 柱状图 | 家庭规模分布（1–6 人） |
+| 图 1.6 | `chart_q1_06_kids_pie.png` | 饼图 | 有/无子女比例 |
+| 图 1.7 | `chart_q1_07_interest_groups.png` | 柱状图 | 10 个兴趣组（A–J）人数分布 |
+| 图 1.8 | `chart_q1_08_balance_hist.png` | 直方图 | 可用余额分布（右偏态） |
+| 图 1.9 | `chart_q1_09_joviality_hist.png` | 直方图 | 愉悦指数分布（近似正态，均值 0.504） |
+
+### Q2 图表（12 张）
+
+| 编号 | 文件名 | 图表类型 | 内容说明 |
+|------|--------|----------|----------|
+| 图 2.1 | `chart_q2_01_degree_dist.png` | 柱状图 | 度分布（对数坐标），近似正态 |
+| 图 2.2 | `chart_q2_02_communities.png` | 柱状图 | 28 个 Louvain 社区规模分布 |
+| 图 2.3 | `chart_q2_03_clustering.png` | 直方图 | 聚类系数分布 |
+| 图 2.4 | `chart_q2_04_venue_types.png` | 柱状图 | 按场所类型统计的签到量 |
+| 图 2.5 | `chart_q2_05_hourly_activity.png` | 折线图 | 按小时统计的活动量（昼夜节律） |
+| 图 2.6 | `chart_q2_06_weekday_weekend.png` | 折线图 | 工作日 vs 周末活动对比 |
+| 图 2.7 | `chart_q2_07_age_social.png` | 散点图 | 年龄 × 社交连接度（带 LOWESS 趋势线） |
+| 图 2.8 | `chart_q2_08_bridge_individuals.png` | 柱状图 | 介数中心性排名前 10 的桥接个体 |
+| 图 2.9 | `chart_q2_09_edge_weights.png` | 小提琴图 | 边权重分布（互动频率） |
+| 图 2.10 | `chart_q2_10_travel_purpose.png` | 柱状图 | 按目的分类的出行频次和消费 |
+| 图 2.11 | `chart_q2_11_daily_activity.png` | 折线图 | 按模式统计的每日活动趋势（7 天滚动平均） |
+| 图 2.12 | `chart_q2_12_hourly_animation.gif` | 动画 | 24 帧每小时活动密度动画（柱状图竞赛） |
+
+### Q3 图表（9 张）
+
+| 编号 | 文件名 | 图表类型 | 内容说明 |
+|------|--------|----------|----------|
+| 图 3.1 | `chart_q3_01_employer_size.png` | 柱状图 | 雇主规模分布（全部 2–9 人） |
+| 图 3.2 | `chart_q3_02_financial_flow.png` | 柱状图 | 按类别统计的净现金流 |
+| 图 3.3 | `chart_q3_03_expense_pie.png` | 饼图 | 支出构成（住房、休闲、食品等） |
+| 图 3.4 | `chart_q3_04_wage_hist.png` | 直方图 | 时薪分布（$10.01–$40.86） |
+| 图 3.5 | `chart_q3_05_wage_box.png` | 箱线图 | 按雇主规模统计的工资分布 |
+| 图 3.6 | `chart_q3_06_building_types.png` | 柱状图 | 建筑类型构成（住宅、商业、学校） |
+| 图 3.7 | `chart_q3_07_industry_pie.png` | 饼图 | 雇主行业分类（餐饮、酒吧、商业） |
+| 图 3.8 | `chart_q3_08_industry_wage.png` | 柱状图 | 按行业统计的时薪 |
+| 图 3.9 | `chart_q3_09_daily_financial.png` | 折线图 | 每日现金流时间序列（7 天滚动平均） |
+
+### Q4 图表（4 张）
+
+| 编号 | 文件名 | 图表类型 | 内容说明 |
+|------|--------|----------|----------|
+| 图 4.1 | `chart_q4_01_mini_age.png` | 迷你图 | 年龄分布概览 |
+| 图 4.2 | `chart_q4_02_mini_venue.png` | 迷你图 | 场所签到分布 |
+| 图 4.3 | `chart_q4_03_mini_financial.png` | 迷你图 | 支出构成概览 |
+| 图 4.4 | `chart_q4_04_map.png` | 地图 | 酒吧（红）、餐厅（绿）、学校（蓝）空间分布 |
+
+**图表存放路径**：`Answer Sheets/VAST Challenge 2022 C1 Answer Sheet_files/`
+
+---
+
+## 四、分析方法论
+
+### Munzner (2009) 四层嵌套模型
+
+本项目采用 Munzner 的嵌套模型作为分析框架，每个问题的分析都包含四个层面：
+
+| 层面 | 说明 | Q1 示例 |
+|------|------|---------|
+| **领域情境** | 分析的目标和范围 | 对 1,011 名居民进行人口特征刻画 |
+| **数据/任务抽象** | 将原始数据抽象为可视化任务 | 将人口属性抽象为一维分布与双变量比较 |
+| **视觉编码** | 选择合适的图表类型 | 直方图（年龄）、柱状图（教育）、饼图（年龄组） |
+| **图表设计** | 具体的图表数量和排列 | 9 幅图从单变量递进至双变量比较 |
+
+### 社交网络分析方法
+
+- **社区检测**：Louvain 算法（加权边），识别出 28 个社区，模块度 Q=0.5194
+- **中心性指标**：度中心性、介数中心性（在最大连通分量上计算）
+- **聚类分析**：局部聚类系数，检测"朋友的朋友亦是朋友"的三元闭包模式
+
+### 数据处理流程
+
+```
+原始 CSV（~3GB）
+    ↓ process_data.py（约 5-10 分钟）
+processed/*.parquet（14 个文件，~1.3MB）
+    ↓ common.py（数据加载 + 图表生成 + 网络分析）
+    ├── app.py（Streamlit Dashboard）
+    └── export_answer_sheet.py（PNG 导出 + HTML 合成）
+```
+
+---
+
+## 五、关键数据指标
+
+### 人口统计（Q1）
+
+| 指标 | 数值 |
+|------|------|
+| 总人口 | 1,011 人 |
+| 平均年龄 | 39.1 岁 |
+| 中位年龄 | 39 岁 |
+| 户均规模 | 2.0 人 |
+| 有子女比例 | ~30% |
+| 兴趣组数 | 10 个（A–J） |
+| 平均愉悦指数 | 0.504 |
+
+### 社交网络（Q2）
+
+| 指标 | 数值 |
+|------|------|
+| 节点数 | 963（有社交连接的居民） |
+| 边数 | 80,483 条 |
+| 社区数 | 28 个（Louvain） |
+| 模块度 | Q = 0.5194 |
+| 平均聚类系数 | 0.0714 |
+| 网络密度 | 0.1738 |
+| 边权重均值 | 28.3 |
+| 边权重中位数 | 17 |
+| 边权重最大值 | 963 |
+
+### 商业经济（Q3）
+
+| 指标 | 数值 |
+|------|------|
+| 雇主总数 | 253 家 |
+| 雇主规模范围 | 2–9 人 |
+| 雇主规模均值 | 5.2 人 |
+| 年工资总额 | $55,633,022 |
+| 时薪范围 | $10.01–$40.86 |
+| 时薪均值 | $19.22 |
+| 最大支出类别 | 住房（$8,982,423/年） |
+| 建筑总数 | 1,042 栋 |
+| 住宅/商业比 | 526:511（约 1:1） |
+
+### 场所分布（Q4）
+
+| 场所类型 | 数量 |
+|----------|------|
+| 酒吧 | 12 家 |
+| 餐厅 | 20 家 |
+| 学校 | 4 所 |
+| 公寓 | 1,517 栋 |
+
+---
+
+## 六、项目运行方法
 
 ### 环境要求
 
-- **Python** 3.11+
-- **操作系统**：Windows / macOS / Linux
-- **磁盘空间**：~4GB（原始 CSV ~3GB + 处理后 ~50MB）
+- Python 3.11+
+- 约 4GB 磁盘空间（原始 CSV ~3GB）
 
 ### 安装依赖
 
@@ -58,478 +264,163 @@ EngageTown 虚构城市的可视化分析项目。参与 [IEEE VAST Challenge 20
 pip install pandas fastparquet plotly streamlit networkx kaleido
 ```
 
-| 包 | 用途 |
-|----|------|
-| `pandas` + `fastparquet` | 数据处理与 parquet 读写 |
-| `plotly` + `kaleido` | 交互式图表 + 静态 PNG 导出 |
-| `streamlit` | 分析报告 Web Dashboard |
-| `networkx` | 社交网络分析（社区检测、中心性） |
-
-### 启动项目
+### 运行步骤
 
 ```bash
-# 步骤 1：处理原始数据（首次运行，约 5-10 分钟）
+# 1. 处理原始数据（首次运行，约 5-10 分钟）
+# 需要将官方数据包的 Datasets/ 目录放到项目同级目录
 python3 process_data.py
 
-# 步骤 2：启动分析 Dashboard
+# 2. 启动交互式 Dashboard
 streamlit run app.py
-# 浏览器访问 → http://localhost:8501
+# 浏览器访问 http://localhost:8501
 
-# 步骤 3（可选）：生成静态 Answer Sheet
+# 3. 生成静态 Answer Sheet（可选）
+# 需要安装 Chrome（Kaleido 依赖）
 python3 export_answer_sheet.py
-# 输出 → Answer Sheets/index.htm + 33 张 PNG 图表
+# 输出到 Answer Sheets/index.htm + 33 张 PNG
 ```
 
-> **注意**：步骤 1 需要将 VAST Challenge 2022 官方数据包中的 `Datasets/` 目录放置到项目同级目录的 `VAST-Challenge-2022/VAST-Challenge-2022/Datasets/` 路径下。
-
-### 路径约定
+### 数据目录结构
 
 ```
-../VAST-Challenge-2022/VAST-Challenge-2022/
-├── Datasets/          # 原始 CSV（官方数据包，~3GB，gitignored）
-│   ├── Activity Logs/ # 72 个 CSV 文件
-│   ├── Journals/      # CheckinJournal, FinancialJournal, SocialNetwork, TravelJournal
-│   └── Attributes/    # Participants, Employers, Jobs, Buildings, Pubs, Restaurants, Schools, Apartments
-└── BaseMap.png        # 城市底图
-
-本项目根目录/
-├── processed/         # 输出的 parquet 文件（14 个，~1.3MB，gitignored）
-└── Answer Sheets/     # 答题卷 + 33 张图表 PNG
-```
-
----
-
-## 项目结构
-
-### 核心文件
-
-```
-.
-├── app.py                          # Streamlit Dashboard — 4 页分析报告（中文，1,466 行）
-├── common.py                       # 共享分析引擎 — 数据加载/图表生成/网络分析（1,218 行）
-├── process_data.py                 # 数据管道 — 114M 活动日志 → 14 个 parquet（494 行）
-├── export_answer_sheet.py          # 静态导出 — 生成 Answer Sheet HTML + 33 张 PNG（910 行）
-│
-├── CLAUDE.md                       # 🔧 开发者指南（数据源映射、架构、待办、已知问题）
-├── README.md                       # 📖 本文件 — 项目总览、变更记录、接手指南
-│
+项目根目录/
+├── Datasets/                    # 原始 CSV（需从 VAST 官网下载）
+│   ├── Activity Logs/           # 72 个 CSV 文件（1.14 亿行）
+│   ├── Journals/                # 4 个日志文件
+│   └── Attributes/              # 8 个属性文件
+├── processed/                   # 处理后的 parquet（14 个文件）
 ├── Answer Sheets/
-│   ├── index.htm                   # 答题卷 HTML（中文，548 行，含分析推理）
+│   ├── index.htm                # 最终提交的答题卷 HTML
 │   └── VAST Challenge 2022 C1 Answer Sheet_files/
-│       ├── chart_q1_01.png ...     # Q1 9 张图表
-│       ├── chart_q2_01.png ...     # Q2 11 张图表
-│       ├── chart_q3_01.png ...     # Q3 9 张图表
-│       └── chart_q4_01.png ...     # Q4 4 张图表（含地图）
-│
-├── docs/
-│   └── superpowers/
-│       ├── specs/2026-05-30-mc1-improvement-plan.md  # 改进计划（部分已完成）
-│       └── plans/2026-05-30-mc1-pipeline-fix.md      # 历史：管道修复计划
-│
-└── .gitignore                      # 排除原始数据、中间产物；保留源代码和答题卷
-```
-
-### 文件职责分工
-
-| 文件 | 角色 | 被谁依赖 | 可独立运行 |
-|------|------|----------|-----------|
-| `common.py` | **唯一数据源（Single Source of Truth）** — 所有数据加载、图表生成、网络分析 | `app.py`、`export_answer_sheet.py` | 否（被导入） |
-| `app.py` | **分析报告 UI** — Streamlit 4 页 Dashboard，读 `common.py` 的函数渲染页面 | 无 | `streamlit run app.py` |
-| `export_answer_sheet.py` | **静态导出器** — 用 kaleido 导出 Plotly 图表为 PNG，生成 `index.htm` | 无 | `python3 export_answer_sheet.py` |
-| `process_data.py` | **数据管道** — 从原始 CSV 生成 `processed/*.parquet` | 前三个文件（通过 `processed/` 间接依赖） | `python3 process_data.py` |
-| `index.htm` | **最终提交物** — VAST Challenge Answer Sheet | 无（纯静态 HTML） | 浏览器直接打开 |
-
-### processed/ 数据文件一览
-
-| 文件 | 行数 | 来源 | 用途 |
-|------|------|------|------|
-| `participant_summary.parquet` | 1,011 | Attributes + Activity + Social | Q1–Q4 核心人口数据 |
-| `social_network.parquet` | 160,966 | SocialNetwork journal | Q2 网络分析 |
-| `venue_checkins.parquet` | 1,114 | CheckinJournal | Q2 签到分析 |
-| `hourly_activity.parquet` | 10,774 | Activity logs | Q2 时间模式 |
-| `daily_activity.parquet` | 450 | Activity logs | 每日活动趋势 |
-| `financial_summary.parquet` | 6 | FinancialJournal | Q3 财务分析 |
-| `daily_financial.parquet` | 1,391 | FinancialJournal | 每日财务趋势 |
-| `job_summary.parquet` | 253 | Jobs.csv | Q3 雇主/工资分析 |
-| `travel_purpose_summary.parquet` | 5 | TravelJournal | Q2 出行模式 |
-| `building_types.parquet` | 3 | Buildings.csv | Q3 建筑类型 |
-| `pubs.parquet` | 12 | Pubs.csv | Q2/Q4 地图标注 |
-| `restaurants.parquet` | 20 | Restaurants.csv | Q2/Q4 地图标注 |
-| `schools.parquet` | 4 | Schools.csv | Q2/Q4 地图标注 |
-| `apartments.parquet` | 1,517 | Apartments.csv | 公寓数据 |
-
----
-
-## GitHub 上传准备
-
-### 追踪策略
-
-本项目遵循 GitHub 最佳实践：**追踪源代码和最终成果，忽略原始数据和中间产物**。
-
-### 上传时包含的文件（`git add`）
-
-| 类别 | 文件 | 说明 |
-|------|------|------|
-| **核心脚本** | `app.py`, `common.py`, `process_data.py`, `export_answer_sheet.py` | 全部 Python 源代码（~4,600 行） |
-| **配置文件** | `.gitignore` | 忽略规则 |
-| **文档** | `README.md`, `CLAUDE.md` | 项目说明 + 开发者指南 |
-| **历史规划** | `docs/superpowers/specs/*.md`, `docs/superpowers/plans/*.md` | 改进计划与管道修复记录 |
-| **答题卷** | `Answer Sheets/index.htm` | VAST Challenge 最终提交 HTML（548 行） |
-| **答题卷图表** | `Answer Sheets/VAST Challenge 2022 C1 Answer Sheet_files/*.png` | 33 张 PNG 图表（~2MB） |
-| **答题卷动画** | `Answer Sheets/.../chart_q2_12_hourly_animation.gif` | Q2 小时活动动画（~2MB） |
-
-### 被忽略的文件（`.gitignore` 排除）
-
-| 类别 | 路径/模式 | 原因 | 如何获取 |
-|------|-----------|------|----------|
-| **原始数据** | `Datasets/` | ~3GB CSV，官方数据包，版权不属于本项目 | 从 [VAST Challenge 2022](https://vast-challenge.github.io/2022/) 下载 |
-| **中间产物** | `processed/`, `*.parquet` | 由 `process_data.py` 生成，约 1.3MB | 运行 `python3 process_data.py` |
-| **虚拟环境** | `venv/`, `.venv/`, `env/` | 本地环境，各机器不同 | `pip install pandas fastparquet plotly streamlit networkx kaleido` |
-| **IDE 配置** | `.idea/`, `.vscode/`, `*.swp` | 个人编辑器设置 |
-| **Python 缓存** | `__pycache__/`, `*.pyc` | 字节码缓存，可重新生成 |
-| **Claude 会话** | `.claude/` | AI 辅助开发会话，与代码无关 |
-| **Streamlit 密钥** | `.streamlit/secrets.toml` | 可能包含敏感信息 |
-| **系统文件** | `.DS_Store`, `Thumbs.db`, `Desktop.ini` | 操作系统自动生成 |
-
-### 上传后的操作（克隆者视角）
-
-```bash
-# 1. 克隆仓库
-git clone <repo-url>
-cd VAST-Challenge-2022-Mini-Challenge-1-master
-
-# 2. 安装依赖
-pip install pandas fastparquet plotly streamlit networkx kaleido
-
-# 3. 下载原始数据 → 放置到 ../VAST-Challenge-2022/VAST-Challenge-2022/Datasets/
-#    从 https://vast-challenge.github.io/2022/ 获取
-
-# 4. 运行数据管道
-python3 process_data.py    # 生成 processed/*.parquet
-
-# 5. 启动分析 Dashboard
-streamlit run app.py       # → http://localhost:8501
-
-# 6. （可选）重新生成 Answer Sheet 图表
-python3 export_answer_sheet.py
-```
-
-### 发行包说明
-
-项目根目录提供 `RELEASE_INFO.md`，详细记录了本次 GitHub 上传准备的完整变更清单，包括：
-- `.gitignore` 修改前后对比
-- 每类文件的追踪/忽略决策依据
-- 上传包文件清单（SHA256 校验）
-- 数据再生指南
-
-### .gitignore 规则速查
-
-```
-追踪（上传）          忽略（不上传）
-──────────────       ──────────────────
-app.py               Datasets/（~3GB 原始 CSV）
-common.py            processed/（~1.3MB parquet）
-process_data.py      __pycache__/
-export_answer_sheet.py  venv/
-README.md            .claude/
-CLAUDE.md            .idea/ .vscode/
-.gitignore           .DS_Store Thumbs.db
-docs/                *.log *.tmp
-Answer Sheets/       *.pyc
-  (HTML + PNG/GIF)
+│       ├── chart_q1_*.png       # Q1 图表（9 张）
+│       ├── chart_q2_*.png       # Q2 图表（11 张 + 1 张 GIF）
+│       ├── chart_q3_*.png       # Q3 图表（9 张）
+│       └── chart_q4_*.png       # Q4 图表（4 张）
+├── app.py                       # Streamlit Dashboard
+├── common.py                    # 共享分析引擎
+├── process_data.py              # 数据处理管道
+└── export_answer_sheet.py       # 答题卷导出脚本
 ```
 
 ---
 
-## 技术栈与依赖
+## 七、项目文件结构
 
-```
-核心语言：  Python 3.14
-数据处理：  pandas 2.x, fastparquet
-可视化：    plotly 6.7, kaleido（静态导出）
-Dashboard： streamlit 1.58
-网络分析：  networkx 3.6（Louvain 社区检测、介数中心性、聚类系数）
-其他：      numpy, base64, pathlib
-```
-
-**没有使用**：数据库、Spark、Dask、Redis、Docker。整个项目是单机 Python 脚本集合，所有分析在内存中完成。
-
----
-
-## 数据流与工作流程
-
-### 完整管道
-
-```
-原始 CSV（~3GB）         process_data.py          processed/（~1.3MB）
-─────────────────  ────>  ───────────────  ────>  ──────────────────
-Activity Logs            chunked read +            participant_summary
-  (72 文件, 114M 行)      vectorized groupby       hourly_activity
-CheckinJournal                                     daily_activity
-FinancialJournal                                   venue_checkins
-SocialNetwork                                      financial_summary
-TravelJournal                                      daily_financial
-Attributes/*.csv                                   social_network
-Jobs.csv + Employers.csv                           travel_purpose_summary
-Buildings.csv                                      job_summary
-                                                   building_types
-                                                   pubs, restaurants,
-                                                   schools, apartments
-
-                    ↓
-
-processed/*.parquet     common.py             app.py（Dashboard）
-─────────────────  ────>  ────────────  ────>  ──────────────────
-全部 14 个文件            load_data()           Q1 人口特征
-                          compute_network_      Q2 社交活动
-                            metrics()           Q3 商业经济
-                          make_q*_*()           Q4 城市概览
-                          prepare_*()
-
-                    ↓
-
-processed/*.parquet     common.py             export_answer_sheet.py
-─────────────────  ────>  ────────────  ────>  ───────────────────────
-                         （同上）              生成 33 张 PNG 图表
-                                              + 合成 index.htm
-```
-
-### 分析逻辑链路（Q1 → Q2 → Q3 → Q4）
-
-```
-Q1 人口基线
-  ├─ 年龄结构 → Q2 年龄-连通性曲线（模式六）
-  ├─ 兴趣组均匀 → Q2 社区检测预期（模式二）
-  ├─ 家庭微型 → Q3 微型企业（发现一、发现四）
-  └─ 教育-余额梯度 → Q3 工资分析（发现三）
-
-Q2 社交网络
-  ├─ 度分布重尾 → Q2 桥接个体（模式七）
-  ├─ 场所偏好（餐饮主导）→ Q3 支出结构（发现二）
-  ├─ 昼夜节律 → Q3 双周工资周期的消费节律
-  └─ 场所集聚 → Q4 地图（图 4.4）
-
-Q3 经济基础
-  ├─ 微型雇主 → Q1 微型家庭（发现一）
-  ├─ 休闲支出≈食品支出 → Q2 场所偏好 + 出行目的
-  └─ 产业不可分类 → Q1 教育多样性
-
-Q4 综合概览
-  └─ 一页信息图（谁/如何生活/经济/场所）← Q1+Q2+Q3 交叉证据
-```
-
----
-
-## 关键架构决策
-
-### 1. common.py 作为唯一分析引擎
-**最初**：`app.py` 包含所有数据加载和图表生成逻辑（~2,000 行）。  
-**现在**：`common.py` 抽取为共享层，`app.py` 和 `export_answer_sheet.py` 都导入它。  
-**原因**：避免在两个消费者之间复制图表逻辑；确保 Dashboard 和 Answer Sheet 使用的数值完全一致。
-
-### 2. 社交网络分析在内存中完成
-网络指标（社区检测、中心性、聚类）在 `common.py` 的 `compute_network_metrics()` 中实时计算，不在 `process_data.py` 中预计算。  
-**好处**：管道简单，输出文件小（160K 行而非全图序列化）。  
-**代价**：首次加载 networkx 图分析需 10–30 秒（`@st.cache_data` 缓存后续命中）。
-
-### 3. 所有图表数值动态计算
-Dashboard 和 Answer Sheet 中的每个数字都从 `processed/*.parquet` 实时计算，不存在硬编码数值。  
-**好处**：若原始数据更新（如 VAST 发布修正版），重新运行 `process_data.py` 后所有输出自动更新。
-
-### 4. Answer Sheet 采用中文 + 分析推理格式
-不同于官方英文模板的简单问答格式，本项目 Answer Sheet 增加了：
-- 每个发现/模式后紧跟对应图表（"一图一析"）
-- `🔍 分析思路` 框解释分析方法和推理链
-- 跨问题交叉引用（"见图 X.Y"）
-- Munzner (2009) 四层嵌套模型作为分析框架声明
-- 三大板块分组（Q2：网络结构 → 行为时间 → 人口空间）
-
-### 5. 不使用 Web 框架导出
-静态 PNG 图表通过 `kaleido` 引擎直接从 Plotly figure 导出，不依赖 Playwright 或无头浏览器。
-
----
-
-## 本阶段变更记录
-
-**时间跨度**：2026-06-02（V2）→ 2026-06-10（V2.1）  
-**核心主题**：从英文数据浏览器升级为中文学术分析报告 + 完整答题卷
-
-### 一、架构重构（高影响）
-
-| 变更 | 改前 | 改后 | 文件 |
-|------|------|------|------|
-| **抽取共享引擎** | `app.py` 包含全部逻辑（~2,000 行） | `common.py`（1,218 行）抽取数据加载/图表/网络分析；`app.py`（1,466 行）只负责页面渲染 | `common.py` + `app.py` |
-| **创建静态导出器** | 不存在 | `export_answer_sheet.py`（910 行）用 kaleido 导出 33 张 PNG + 合成 `index.htm` | `export_answer_sheet.py`（新建） |
-
-### 二、app.py 中文化与内容升级
-
-| 变更 | 详情 |
-|------|------|
-| **全页面翻译** | Q1–Q4 全部页面标题、分析文字、图表标签翻译为学术中文 |
-| **侧边栏导航** | 标题、导航选项、底部说明全部中文 |
-| **分析框架声明** | 每页增加 Munzner (2009) 四层嵌套模型框（领域情境 → 数据抽象 → 视觉编码 → 图表设计） |
-| **交叉引用** | 发现之间增加"见图 X.Y"交叉引用链接 Q1↔Q2↔Q3↔Q4 |
-| **措辞风格** | 统一为学术报告语气（"特征""模式""发现""依据"），非数据浏览器描述 |
-
-### 三、Answer Sheets/index.htm 完全重构
-
-**第一轮**（中文化翻译）：将原英文模板 ~320 行全部翻译为中文，包括：
-- 页面元数据（`lang="zh-CN"`、中文字体栈）
-- 参赛信息、Q1–Q4 分析文本、Munzner 框架框
-- 全部 33 张图表标题（"图 X.Y：..."）
-- 合规摘要表、参考文献
-
-**第二轮**（结构重组 + 分析推理注入）：
-- **布局重构**：从"先文后图"改为"发现→图表→图注→分析思路"逐条穿插
-- **分析思路框**：每个发现/模式后增加 `🔍 分析思路` 框（蓝灰色左边框），解释：
-  - 为什么用这个图表类型（视觉编码选择理由）
-  - 统计特征如何解读（均值 vs 中位数、LOWESS 趋势线、对数-对数轴等）
-  - 该发现与上下文的逻辑关联（交叉引用 + 证据链）
-  - 方法论优势与局限
-- **Q2 板块化**：将 10 项模式组织为 A（网络结构属性）、B（行为与时间模式）、C（人口与空间关联）三大板块
-- **图注增强**：每张图的标题从一句话扩展为包含轴含义、关键数值标注、视觉特征描述
-- **样式系统**：新增 `.framework-box`、`.reasoning-box`、`.finding-label`、`.caption` 等 CSS 类
-
-### 四、图表资产
-
-| 产出 | 数量 | 路径 |
-|------|------|------|
-| Q1 图表 | 9 张 PNG | `Answer Sheets/VAST Challenge 2022 C1 Answer Sheet_files/chart_q1_*.png` |
-| Q2 图表 | 11 张 PNG + 1 张 GIF | `.../chart_q2_*.png` + `chart_q2_12_hourly_animation.gif` |
-| Q3 图表 | 9 张 PNG | `.../chart_q3_*.png` |
-| Q4 图表 | 4 张 PNG（含地图） | `.../chart_q4_*.png` |
-| **合计** | **33 张 + 1 张 GIF** | |
-
----
-
-## 当前产出状态
-
-### 已完成 ✅
-
-| 任务 | 状态 | 说明 |
-|------|------|------|
-| 数据管道 | ✅ | `process_data.py` 正确处理全部原始 CSV → 14 个 parquet |
-| Dashboard V1 → V2 升级 | ✅ | 从数据浏览器升级为分析报告（2026-06-02） |
-| common.py 共享引擎 | ✅ | 数据加载、图表生成、网络分析统一抽离（2026-06-09） |
-| export_answer_sheet.py | ✅ | 静态 PNG 导出 + index.htm 生成 |
-| app.py 全中文化 | ✅ | Q1–Q4 + 侧边栏 + Munzner 框架框（2026-06-09） |
-| Answer Sheet 中文化 | ✅ | 全 321 行翻译（2026-06-09） |
-| Answer Sheet 结构重组 | ✅ | "一图一析"布局 + 分析思路 + 逻辑链（2026-06-10） |
-| Q2 工作日/周末行为 | ✅ | 图 2.6（weekday_weekend 对比）+ 模式五分析 |
-| Q4 信息图 | ✅ | 三小幅面图表 + 场所地图 + 四大板块描述 |
-| 社交网络分析 | ✅ | Louvain 社区检测 + 度/介数/聚类系数 + 边权重分析 |
-| 产业基础判定 | ✅ | 判定为"地方服务生态系统"——253 家微型企业、无主导产业 |
-| 提交合规 | ✅ | Q1–Q3 各 ≤500 词 + ≤10 图，Q4 一页，总计 ~1,980 词 + 33 图 |
-
-### 部分完成 ⚠️
-
-| 任务 | 完成度 | 剩余工作 |
-|------|--------|----------|
-| Answer Sheet 图表内嵌 | 80% | `index.htm` 引用本地 PNG；若提交需确认路径可访问性 |
-| Q2 模式证据 | 80% | 10 项模式均有量化指标 + LOWESS + 统计描述，部分模式的 p 值/置信区间未报告 |
-| Q3 产业分类 | 60% | 28/253 家可分类（通过建筑-场所匹配）；89% 不可分类的雇主未进一步推断 |
-
----
-
-## 待完成工作
-
-### 高优先级 🔴
-
-| 任务 | 说明 | 预估工作量 |
-|------|------|-----------|
-| **Answer Sheet 生成自动化** | 当前 `export_answer_sheet.py` 生成 PNG 图表，但 `index.htm` 的分析文字仍为手写。需要从分析结果中自动提取关键数值并填入模板，或至少确保 `export_answer_sheet.py` 生成的图表与 `index.htm` 引用的文件名完全一致 | 4–8 小时 |
-| **Q2 统计检验加强** | 部分模式的证据依赖描述性统计（如模式五的峰值"17:00"、模式六的趋势线）。建议补充：(a) Kolmogorov-Smirnov 检验度分布的幂律拟合优度，(b) 工作日 vs 周末活动量的配对 t 检验，(c) 年龄-连通性 LOWESS 的 bootstrap 置信带 | 4–6 小时 |
-| **Q3 产业分类细化** | 225 家"未分化商业企业"可能需要：(a) 通过雇主名称关键词推断类型，(b) 利用交易记录中的对方账户推断行业，(c) 结合位置数据做空间聚类分析 | 6–10 小时 |
-
-### 中优先级 🟡
-
-| 任务 | 说明 | 预估工作量 |
-|------|------|-----------|
-| **Q1 教育-年龄交叉分析** | 当前分别分析了年龄（发现一）和教育（发现二），但未做年龄×教育的双变量交叉。该分析可揭示不同年龄组的人力资本积累差异 | 2–4 小时 |
-| **Q2 工作日/周末统计** | 图 2.6 已有视觉对比，但 `compute_weekend_metrics()` 中周末休闲时间的百分比变化需要从数据中验证（当前周末 Recreation "0%" 可能是计算错误，需排查） | 2–3 小时 |
-| **Q4 信息图视觉增强** | 当前使用 streamlit 原生三栏布局 + HTML 信息框。可考虑：(a) 自定义 HTML/CSS 表格替代原生组件，(b) 图标/emoji 点缀关键指标，(c) 将小幅面图表增大至 300px | 3–5 小时 |
-| **首次加载优化** | `@st.cache_data` 首次命中需 10–30 秒（networkx 社区检测）。考虑：(a) 将网络指标预计算写入 `processed/`，(b) 加载时展示进度条，(c) 懒加载非当前页的数据 | 2–4 小时 |
-
-### 低优先级 🟢
-
-| 任务 | 说明 |
-|------|------|
-| **配色方案统一** | 当前 Q1–Q4 使用混合调色板（plotly 默认 + 自定义），可统一为 3–4 色的主题调色板 |
-| **图表增加注释** | 关键图表增加数据来源标注和统计检验结果注释 |
-| **导航优化** | 可考虑"HUD 模式"单页滚动（report mode）替代当前 4-tab radio 导航 |
-| **移动端响应式** | 当前针对桌面端设计，移动端 `max-width` 和图表缩放未适配 |
-| **Playwright 替代方案** | Playwright 不支持 ubuntu 26.04，若需自动化截图，可迁移到 `selenium` 或使用 `kaleido` 导出（已有 `export_answer_sheet.py` 使用 kaleido） |
-
----
-
-## 已知问题
-
-| 问题 | 影响 | 修复方向 |
+| 文件 | 用途 | 代码行数 |
 |------|------|----------|
-| `buildingTypes` 数据拼写："Residental" 应为 "Residential" | 低（仅影响建筑类型标签显示） | 在 `process_data.py` 中做字符串替换 |
-| 部分 venue 列名尾随空格（`"maxOccupancy "`） | 低（已处理） | `process_data.py` 已有 `.rename()` 修复 |
-| `index.htm` 中 Q2 模式五周末 Recreation 显示为 "0%" | 中（数据可能有误） | 检查 `compute_weekend_metrics()` 的逻辑 |
-| `@st.cache_data` 首次加载延迟 | 中（用户体验） | 见待完成工作中优先级第 4 项 |
-| Playwright 不支持 ubuntu 26.04 | 低（当前用 kaleido 替代） | 等 Playwright 更新或迁移截图方案 |
-| Q2 Fig 2.11 引用但图注写"10 images"而 Q2 实际有 11 张图 | 低（合规表已标注 11） | 统一措辞 |
+| `app.py` | Streamlit Dashboard，4 页分析报告（中文） | ~1,466 行 |
+| `common.py` | 共享引擎：数据加载、图表生成、网络分析 | ~1,218 行 |
+| `process_data.py` | 数据管道：原始 CSV → 14 个 parquet | ~494 行 |
+| `export_answer_sheet.py` | 静态导出：33 张 PNG + index.htm | ~916 行 |
+| `Answer Sheets/index.htm` | 最终提交的答题卷 HTML | ~450 行 |
 
----
+### 架构关系
 
-## 给接手指南
-
-### 如果你想……
-
-#### **理解项目**
-1. 先读本文件（你正在读的）
-2. 读 [`CLAUDE.md`](CLAUDE.md) 了解数据源映射、app.py 架构、完整待办列表
-3. 打开 `app.py`，运行 `streamlit run app.py`，在浏览器里逐页浏览 Q1→Q4
-4. 打开 `Answer Sheets/index.htm` 在浏览器中查看最终提交物的渲染效果
-
-#### **修改分析逻辑**
-1. **只改图表样式** → 编辑 `common.py` 中的 `make_q*_*()` 函数
-2. **改网络分析算法** → 编辑 `common.py` 中的 `compute_network_metrics()`
-3. **改数据处理方式** → 编辑 `process_data.py`，重新运行后所有下游自动更新
-4. **改页面布局/文字** → 编辑 `app.py` 对应的 Q-section 部分
-
-#### **重新生成 Answer Sheet**
-```bash
-python3 export_answer_sheet.py
 ```
-这会用 `common.py` 的分析逻辑重新生成全部 33 张 PNG 图表。然后手动检查 `index.htm` 中的分析文字是否需要同步更新（因为 `index.htm` 的分析文字是手写的，不会自动更新数值）。
-
-#### **添加新的分析维度**
-1. 如果需要新的聚合数据 → 在 `process_data.py` 中新增处理函数
-2. 如果只是现有数据的新的可视化 → 在 `common.py` 中新增 `make_q*_newchart()` 函数
-3. 在 `app.py` 对应页面中调用新图表
-4. 同步更新 `index.htm`（增加图片引用和分析文字）
-
-### 常见陷阱
-
-- **路径问题**：`common.py` 中 `DATA_ROOT` 指向 `../VAST-Challenge-2022/VAST-Challenge-2022/`，如果原始数据放在别处需要修改这个常量
-- **缓存问题**：修改 `common.py` 或 `process_data.py` 后，Streamlit 的 `@st.cache_data` 可能返回旧结果 → 在 Dashboard 侧边栏点"Clear Cache"或重启 app
-- **图表数量限制**：VAST Challenge 规定每问 ≤10 张图。如果在 `app.py` 中加了新图但 Q2 已经有 11 张，提交时需按 10 张上限取舍（当前 Q2 11 张已超限 1 张）
-- **文字不可硬编码**：`index.htm` 中所有数值（如均值、中位数）应与 `app.py` 实时计算值一致。修改 `process_data.py` 后务必重新运行 `export_answer_sheet.py` 并手动核对 `index.htm` 中的数字
-- **kaleido 导出失败**：部分 plotly 图表类型（如动画、3D）kaleido 不支持。如需导出这类图表，用 `plotly.io.write_image()` 替代
-
-### 提交前检查清单
-
-- [ ] 运行 `python3 process_data.py` 确认无报错
-- [ ] 运行 `streamlit run app.py` 确认 4 页渲染正常
-- [ ] 运行 `python3 export_answer_sheet.py` 重新生成全部 PNG
-- [ ] 浏览器打开 `Answer Sheets/index.htm` 确认所有图片加载正常
-- [ ] 逐页核对 Q1–Q3 词数 ≤500、图表 ≤10、Q4 不超过一页
-- [ ] 确认合规摘要表中的数字与实际一致
-- [ ] 确认所有交叉引用（"见图 X.Y"）的图号正确
-- [ ] 确认参赛信息（团队名称、成员、工时）填写完整
-- [ ] 检查视频链接是否可访问（如允许发布视频设为"是"）
+common.py（共享引擎）
+    ↑ 导入              ↑ 导入
+    │                   │
+app.py              export_answer_sheet.py
+(Streamlit Dashboard)    (静态导出)
+    │                   │
+    ↓ 渲染              ↓ 生成
+浏览器交互界面         Answer Sheets/index.htm + PNG
+```
 
 ---
 
-## 参考文献
+## 八、技术栈
+
+| 技术 | 版本 | 用途 |
+|------|------|------|
+| Python | 3.14 | 核心语言 |
+| Pandas | 2.x | 数据处理 |
+| fastparquet | - | Parquet 文件读写 |
+| Plotly | 6.7 | 交互式图表 |
+| Streamlit | 1.58 | Web Dashboard |
+| NetworkX | 3.6 | 社交网络分析 |
+| Kaleido | 1.x | 静态 PNG 导出 |
+| NumPy | - | 数值计算 |
+
+---
+
+## 九、PPT 制作建议
+
+### 建议的 PPT 结构
+
+1. **封面**（1 页）
+   - 项目名称、团队成员、赛题信息
+
+2. **项目背景**（1–2 页）
+   - VAST Challenge 介绍
+   - EngageTown 数据规模
+   - 分析目标（4 个问题）
+
+3. **Q1 人口特征**（3–4 页）
+   - 核心发现概述
+   - 关键图表（图 1.1 年龄分布、图 1.4 教育-余额、图 1.7 兴趣组）
+   - 深层洞察
+
+4. **Q2 社交活动**（4–5 页）
+   - 10 项模式概览
+   - 网络结构（图 2.1 度分布、图 2.2 社区、图 2.3 聚类）
+   - 行为模式（图 2.4 场所、图 2.5–2.6 时间节律）
+   - 人口关联（图 2.7 年龄-连接度）
+   - 深层洞察
+
+5. **Q3 商业经济**（3–4 页）
+   - 核心发现概述
+   - 关键图表（图 3.1 雇主规模、图 3.3 支出、图 3.7 行业）
+   - 深层洞察
+
+6. **Q4 综合概览**（1–2 页）
+   - 一页信息图
+   - 场所地图
+
+7. **总结与建议**（1–2 页）
+   - "小型均衡中的隐性脆弱"
+   - 三个结构性风险
+   - 对规划者的建议
+
+8. **技术方法**（1–2 页）
+   - Munzner 模型
+   - 分析工具链
+
+9. **致谢**（1 页）
+
+### 图表使用提示
+
+- 所有图表 PNG 存放在 `Answer Sheets/VAST Challenge 2022 C1 Answer Sheet_files/`
+- 建议在 PPT 中使用原始 PNG（高清），不要截图
+- Q2 的图 2.12 是 GIF 动画，可以在 PPT 中嵌入动画
+- 图 4.4 是地图，适合作为 Q4 的视觉亮点
+
+### 关键数字（PPT 中可直接引用）
+
+| 类别 | 数字 |
+|------|------|
+| 数据规模 | 1.14 亿条活动日志 |
+| 居民数量 | 1,011 人 |
+| 社交连接 | 80,483 条 |
+| 社区数量 | 28 个 |
+| 雇主数量 | 253 家 |
+| 图表总数 | 33 张 + 1 张动画 |
+| 分析耗时 | 约 120 小时 |
+
+---
+
+## 十、参考文献
 
 - [VAST Challenge 2022 Official Site](https://vast-challenge.github.io/2022/)
-- Munzner, T. "A Nested Model for Visualization Design and Validation." *IEEE TVCG*, 2009.
+- Munzner, T. "A Nested Model for Visualization Design and Validation." *IEEE TVCG*, 15(6), 921–928, 2009.
 - Blondel, V. D. et al. "Fast unfolding of communities in large networks." *J. Stat. Mech.*, 2008.
 - [Streamlit Documentation](https://docs.streamlit.io)
 - [Plotly Python](https://plotly.com/python/)
 - [NetworkX Documentation](https://networkx.org)
+
+---
+
+## 联系方式
+
+如有问题，请联系项目负责人或查看 `CLAUDE.md` 了解详细的技术文档。
