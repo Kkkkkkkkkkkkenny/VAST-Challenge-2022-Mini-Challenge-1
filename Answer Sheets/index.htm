@@ -88,8 +88,6 @@
 <p class=MsoNormal><b>学生团队：</b>是</p>
 <p class=MsoNormal><b>使用工具：</b>Python、Streamlit、Plotly、NetworkX、Pandas、fastparquet、Kaleido</p>
 <p class=MsoNormal><b>大约耗时：</b>120 小时</p>
-<p class=MsoNormal><b>允许发布视频：</b>是</p>
-<p class=MsoNormal><b>视频链接：</b>https://example.com/engagetown-demo</p>
 
 <hr>
 
@@ -105,7 +103,7 @@
 <b>图表设计：</b>9 幅图（图 1.1–1.9）从单变量人口分布递进至双变量比较，兼顾概览与特定人口维度的深入探查。
 </p>
 
-<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(9 幅图 / ~83 词 — 限制: 500 词)</p>
+<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(9 幅图 / ~94 词 — 限制: 500 词)</p>
 
 <p class=MsoNormal>基于 1,011 条具有代表性的志愿者记录，我们将 EngageTown 刻画为一个以劳动年龄人口为主体、家庭规模较小、经济状况中等、社会兴趣多元化的社区。</p>
 
@@ -120,6 +118,10 @@
 <p class=MsoNormal><b>经济状况。</b>居民维持中等水平的可用余额，分布呈右偏态——多数集中于中等水平，少数高净值个体形成长尾（图 1.8）。愉悦指数（Joviality）近似正态分布于 0.5 附近（图 1.9），表明居民整体幸福感适中，未出现极端分化。</p>
 
 <p class=MsoNormal><b>依据。</b>上述特征刻画基于 participant_summary 数据，该数据汇总了 15 个月（2022 年 3 月–2023 年 5 月）1.14 亿条活动日志记录。代表性假设是必要的，因为志愿者选择标准未明确说明；但人口多样性（年龄、教育、家庭类型）表明样本具有合理的人口覆盖度。主要局限包括缺乏性别、民族和职业数据。</p>
+
+<div style="background:#f0f4f8;padding:12px 16px;border-left:4px solid #2E4057;margin:16px 0;font-size:10.5pt">
+<b>深层洞察：</b>EngageTown 的人口结构揭示了一个<b>自我强化的循环</b>——劳动年龄人口聚集支撑小微企业，小微企业就业机会又吸引年轻劳动力流入。但这种均衡存在脆弱性：（1）极低的老年人口占比意味着社区<b>缺乏代际传承机制</b>，未来可能面临劳动力断层；（2）小家庭化趋势虽然降低了抚养比，但也意味着<b>社区长期增长依赖外部迁入</b>而非自然增长；（3）教育-财富的正相关表明<b>人力资本是经济流动性的关键通道</b>，低学历群体可能陷入"低技能-低收入"陷阱。对城市规划者的启示：应前瞻性布局养老设施和托幼服务，同时通过职业技能培训打破教育-收入的刚性关联。
+</div>
 
 
 <img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q1_01_age_hist.png" style="max-width:100%">
@@ -147,13 +149,13 @@
 <b>图表设计：</b>12 幅图（图 2.1–2.12）从网络拓扑属性（模式 1–3）递进至行为模式（模式 4–5）、时间节律（图 2.11–2.12），再到人口/空间关联（模式 6–10）。
 </p>
 
-<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(12 幅图 / ~118 词 — 限制: 500 词)</p>
+<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(12 幅图 / ~129 词 — 限制: 500 词)</p>
 
 <p class=MsoNormal>我们分析了 963 名居民（80,483 条边）及场所/时间数据，识别出十项显著模式：</p>
 
 <p class=MsoNormal><b>模式一：近似正态的度分布。</b>加权度呈近似正态分布（图 2.1）——大多数居民维持相似规模的社交圈，表明社交连接高度均质化。与典型的无标度网络不同，没有"超级连接者"主导社交格局。</p>
 
-<p class=MsoNormal><b>模式二：强社区结构。</b>Louvain 社区检测识别出 28 个不同社区（图 2.2）。分离良好的社交集群（模块度 Q=0.5192）对应兴趣组（见图 1.7）、工作场所和邻里。</p>
+<p class=MsoNormal><b>模式二：强社区结构。</b>Louvain 社区检测识别出 28 个不同社区（图 2.2）。分离良好的社交集群（模块度 Q=0.5194）对应兴趣组（见图 1.7）、工作场所和邻里。</p>
 
 <p class=MsoNormal><b>模式三：高局部聚类。</b>平均聚类系数（0.0714）远高于网络密度（0.1738，图 2.3）。这种"朋友的朋友亦是朋友"的三元闭包信号表明社区通过共享背景实现凝聚。</p>
 
@@ -173,10 +175,14 @@
 
 <p class=MsoNormal><b>Rationale.</b> Community detection used the Louvain algorithm [2] with weighted edges; centrality computed on the largest connected component. Convergence of patterns across network, temporal, venue, and travel data provides triangulating evidence.</p>
 
+<div style="background:#f0f4f8;padding:12px 16px;border-left:4px solid #54A24B;margin:16px 0;font-size:10.5pt">
+<b>深层洞察：</b>十项模式共同指向一个核心发现——EngageTown 的社交生态是一个<b>高度自组织的系统</b>，而非随机聚集。度分布的均质化（模式一）与强社区结构（模式二）形成张力：前者意味着社交机会均等，后者意味着信息流动存在壁垒。这种"均质中的模块化"结构的<b>政策含义</b>是：公共信息传播不能依赖单一渠道，而应利用桥接个体（模式七）作为跨社区信息枢纽。更值得关注的是，休闲支出与食品支出持平（模式九）这一反常现象——在典型消费结构中，食品支出应远超休闲。这暗示 EngageTown 居民<b>将社交视为基本需求而非可选消费</b>，社区凝聚力可能正是通过"共同进餐"这一仪式性行为得以维系。对城市规划者的启示：保护和扩展餐饮-休闲空间不仅是经济议题，更是社会资本投资。
+</div>
+
 
 <img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_01_degree_dist.png" style="max-width:100%">
 <p class=MsoNormal style='text-align:center'><i>图 2.1：度分布（对数坐标），呈近似正态分布——大多数居民维持相似规模的社交圈，表明社交连接高度均质化。与典型的无标度网络不同，没有'超级连接者'主导社交格局。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_02_communities.png" style="max-width:100%">
-<p class=MsoNormal style='text-align:center'><i>图 2.2：Louvain 社区检测结果（模块度 Q=0.5192），社区规模从约 10 人的小集群到 60–80 人的大群体不等，反映了 Q1 中识别的兴趣组结构（见图 1.7）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_03_clustering.png" style="max-width:100%">
+<p class=MsoNormal style='text-align:center'><i>图 2.2：Louvain 社区检测结果（模块度 Q=0.5194），社区规模从约 10 人的小集群到 60–80 人的大群体不等，反映了 Q1 中识别的兴趣组结构（见图 1.7）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_03_clustering.png" style="max-width:100%">
 <p class=MsoNormal style='text-align:center'><i>图 2.3：聚类系数分布——平均聚类系数（0.0714）远高于网络密度（0.1738），展示了'朋友的朋友亦是朋友'的三元闭包模式，这是紧密现实社交网络的典型特征。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_04_venue_types.png" style="max-width:100%">
 <p class=MsoNormal style='text-align:center'><i>图 2.4：按场所类型统计的签到量——公寓类场所签到最多（~37.6%），其次是工作场所（~24.2%）和餐厅（~21.3%）。餐厅+酒吧合计占签到量的 ~38.2%，作为核心社交场所（支出明细见图 3.3）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_05_hourly_activity.png" style="max-width:100%">
 <p class=MsoNormal style='text-align:center'><i>图 2.5：按小时统计的活动量，呈现清晰的昼夜节律——夜间低谷，上午攀升，傍晚达到峰值（17:00–19:00）。这一模式与劳动年龄人口特征一致（见图 1.1）。</i></p><img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q2_06_weekday_weekend.png" style="max-width:100%">
@@ -205,7 +211,7 @@
 <b>图表设计：</b>9 幅图（图 3.1–3.9）从经济结构属性经工资分析和时间序列到行业分类，揭示分层的本地服务经济。
 </p>
 
-<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(9 幅图 / ~90 词 — 限制: 500 词)</p>
+<p class=MsoNormal style='color:#888;font-size:9pt;margin:0 0 10px 0'>(9 幅图 / ~108 词 — 限制: 500 词)</p>
 
 <p class=MsoNormal>EngageTown 的经济是由小微企业构成的分布式生态系统，而非单一主导产业：</p>
 
@@ -222,6 +228,10 @@
 <p class=MsoNormal><b>主导产业判断。</b>EngageTown 的经济最适合描述为<b>本地服务生态系统</b>——小型、未分化的商业企业辅以服务本地需求的可见酒店业。0% 的雇主无法具体分类本身就是一项发现：该镇的商业身份是细粒度、多元化的，而非集中化的。</p>
 
 <p class=MsoNormal><b>依据。</b>分析结合了雇主记录（Jobs.csv、Employers.csv）、金融日志汇总（140 万笔交易）和与场所表交叉引用的建筑存量。行业分类受限于缺乏雇主行业代码；分类依赖于建筑-场所匹配。</p>
+
+<div style="background:#f0f4f8;padding:12px 16px;border-left:4px solid #E45756;margin:16px 0;font-size:10.5pt">
+<b>深层洞察：</b>EngageTown 的经济结构揭示了一个<b>反直觉的韧性模式</b>。表面上看，253 家小微企业、无主导产业、无法分类的商业似乎指向"低端、混乱、缺乏竞争力"的经济形态。但换个视角：这种<b>高度分散化恰恰是抗风险能力的来源</b>——没有单一企业"大到不能倒"，没有行业依赖外部市场，经济循环完全内生于社区。然而，这种韧性也有代价：（1）<b>工资天花板效应</b>——扁平的工资结构意味着高技能人才缺乏收入上升通道，可能导致人才外流；（2）<b>创新困境</b>——小微企业缺乏研发能力和规模经济，长期可能陷入"低水平均衡"；（3）<b>隐性依赖</b>——虽然表面上不依赖单一产业，但餐饮+休闲支出占比过高意味着经济实际上高度依赖居民的<b>消费信心</b>。对政策制定者的启示：应着力培育 1-2 个"锚点企业"或特色产业，为分散化经济注入结构性支撑。
+</div>
 
 
 <img src="VAST%20Challenge%202022%20C1%20Answer%20Sheet_files/chart_q3_01_employer_size.png" style="max-width:100%">
@@ -257,7 +267,7 @@
 
 <p class=MsoNormal><b>我们是谁</b> <span style='color:#888;font-size:9pt'>（见图 1.1–图 1.9）</span>：EngageTown 拥有 1,011 名居民，以劳动年龄人口为主体（平均年龄 39.1 岁）。我们居住在小型家庭中（平均 2.0 人），约 30% 的家庭有子女。教育背景从高中到研究生不等，多数持有高中/大学或本科学历。我们被组织为 10 个均匀分布的兴趣组（A–J），确保社区内多元化的社交混合。</p>
 
-<p class=MsoNormal><b>我们如何生活</b> <span style='color:#888;font-size:9pt'>（见图 2.1–图 2.10）</span>：我们的社交网络充满活力——80,483 条关系被组织为 28 个不同社区（模块度 0.5192），表明强劲、界限分明的社交圈。我们常去 12 家酒吧、20 家餐厅和 4 所学校。社交生活遵循自然节律：活动在上午攀升，傍晚达到峰值，晚间转向休闲和餐饮。周末我们睡懒觉——活动峰值推迟约 2 小时，休闲时间显著增加（9% vs 工作日 3%），工作时间大幅减少（4% vs 32%）。</p>
+<p class=MsoNormal><b>我们如何生活</b> <span style='color:#888;font-size:9pt'>（见图 2.1–图 2.10）</span>：我们的社交网络充满活力——80,483 条关系被组织为 28 个不同社区（模块度 0.5194），表明强劲、界限分明的社交圈。我们常去 12 家酒吧、20 家餐厅和 4 所学校。社交生活遵循自然节律：活动在上午攀升，傍晚达到峰值，晚间转向休闲和餐饮。周末我们睡懒觉——活动峰值推迟约 2 小时，休闲时间显著增加（9% vs 工作日 3%），工作时间大幅减少（4% vs 32%）。</p>
 
 <p class=MsoNormal><b>我们的经济</b> <span style='color:#888;font-size:9pt'>（见图 3.1–图 3.8）</span>：我们的经济建立在 253 家小型企业之上，每家雇用 2–9 人——这是一个由本地商铺、服务和酒店场所构成的社区，而非大型企业。年工资总额 $55,633,022，时薪范围 $10.01–$40.86（平均 $19.22）。最大支出为住房（$8,982,423/年）和休闲（$4,973,094/年），反映了生活成本和社区对休闲社交活动的重视。该镇有 512 栋商业建筑——超过 253 家注册雇主——为经济增长提供空间。建筑存量（1,042 栋）平衡了住宅（526 栋）与商业活动。</p>
 
@@ -265,6 +275,10 @@
 
 <p class=MsoNormal style='text-align:center; margin-top:12pt;'><b>EngageTown 是一个小型、互联、均衡的社区——邻里相知，本地企业服务本地需求，社交生活围绕共享餐食、外出夜晚和多元兴趣组蓬勃发展。</b></p>
 
+</div>
+
+<div style="background:#f0f4f8;padding:12px 16px;border-left:4px solid #B279A2;margin:16px 0;font-size:10.5pt">
+<b>综合洞察：</b>EngageTown 的核心特质可以概括为<b>"小型均衡中的隐性脆弱"</b>。这个社区在表面上实现了多重均衡：人口-经济均衡（劳动年龄人口支撑服务业）、空间均衡（住宅-商业 1:1）、社交均衡（兴趣组均匀分布）。但数据同时揭示了三个<b>结构性风险</b>：（1）<b>代际断层</b>——极低的老年人口占比和低生育率意味着社区增长完全依赖外部迁入，一旦吸引力下降将面临萎缩；（2）<b>经济单一性</b>——虽然表面上"多元化"，但本质上是围绕居民日常消费的单一服务经济，缺乏应对外部冲击的产业纵深；（3）<b>社交脆弱性</b>——高度模块化的社交网络（模块度 0.5194）意味着信息传播依赖少数桥接个体，一旦关键节点失效可能导致社区分裂。<b>对规划者的终极建议</b>：EngageTown 需要在保持当前均衡优势的同时，前瞻性地培育"增长引擎"（特色产业）和"安全网"（养老设施、职业技能培训），以应对不可避免的人口结构转型。
 </div>
 
 
@@ -297,7 +311,7 @@
 <tr>
 <td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Small-Scale Community Structure</td>
 <td style='padding:5px 10px'>Avg household = 2.0 persons;<br>37% live in 2-person households (Fig 1.5)</td>
-<td style='padding:5px 10px'>28 distinct Louvain communities;<br>modularity Q=0.5192 (Fig 2.2)</td>
+<td style='padding:5px 10px'>28 distinct Louvain communities;<br>modularity Q=0.5194 (Fig 2.2)</td>
 <td style='padding:5px 10px'>All 253 employers are micro-enterprises (2–9 employees);<br>no large institutions (Fig 3.1)</td>
 </tr>
 
@@ -352,7 +366,7 @@
 <tr>
 <td style='padding:5px 10px;font-weight:bold;background:#f5f7fa'>Central Tendency</td>
 <td style='padding:5px 10px;text-align:center'>Age μ = 39.1, Mdn = 39</td>
-<td style='padding:5px 10px;text-align:center'>Degree μ = 0.0;<br>Modularity Q = 0.5192</td>
+<td style='padding:5px 10px;text-align:center'>Degree μ = 0.0;<br>Modularity Q = 0.5194</td>
 <td style='padding:5px 10px;text-align:center'>Wage μ = $19.22/hr;<br>Employer size μ = 5.2</td>
 </tr>
 
@@ -402,35 +416,35 @@
 <tr>
 <td style='padding:5px 12px'>Q1: EngageTown 人口特征</td>
 <td style='padding:5px 12px;text-align:center'>9</td>
-<td style='padding:5px 12px;text-align:center'>~83</td>
+<td style='padding:5px 12px;text-align:center'>~94</td>
 <td style='padding:5px 12px;text-align:center'>500 词 / 10 幅图</td>
 <td style='padding:5px 12px;text-align:center;color:green'>✓</td>
 </tr>
 <tr style='background:#f5f7fa'>
 <td style='padding:5px 12px'>Q2: 社交活动——十项模式</td>
 <td style='padding:5px 12px;text-align:center'>12</td>
-<td style='padding:5px 12px;text-align:center'>~118</td>
+<td style='padding:5px 12px;text-align:center'>~129</td>
 <td style='padding:5px 12px;text-align:center'>500 词 / 10 幅图</td>
 <td style='padding:5px 12px;text-align:center;color:green'>✓</td>
 </tr>
 <tr>
 <td style='padding:5px 12px'>Q3: 主导产业基础</td>
 <td style='padding:5px 12px;text-align:center'>9</td>
-<td style='padding:5px 12px;text-align:center'>~90</td>
+<td style='padding:5px 12px;text-align:center'>~108</td>
 <td style='padding:5px 12px;text-align:center'>500 词 / 10 幅图</td>
 <td style='padding:5px 12px;text-align:center;color:green'>✓</td>
 </tr>
 <tr style='background:#f5f7fa'>
 <td style='padding:5px 12px'>Q4: EngageTown 城市概览</td>
 <td style='padding:5px 12px;text-align:center'>4</td>
-<td style='padding:5px 12px;text-align:center'>~95</td>
+<td style='padding:5px 12px;text-align:center'>~113</td>
 <td style='padding:5px 12px;text-align:center'>一页</td>
 <td style='padding:5px 12px;text-align:center;color:green'>✓</td>
 </tr>
 <tr style='font-weight:bold;border-top:2px solid #2E4057'>
 <td style='padding:6px 12px'>合计</td>
 <td style='padding:6px 12px;text-align:center'>34</td>
-<td style='padding:6px 12px;text-align:center'>~386</td>
+<td style='padding:6px 12px;text-align:center'>~444</td>
 <td style='padding:6px 12px;text-align:center'>2,000 词 / 40 幅图</td>
 <td style='padding:6px 12px;text-align:center'></td>
 </tr>

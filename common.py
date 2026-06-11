@@ -418,33 +418,24 @@ def make_q1_edu_age_cross(ps):
 
     colors = [PALETTE["secondary"], PALETTE["accent"], PALETTE["green"], PALETTE["red"]]
 
-    fig = go.Figure()
-    for i, edu in enumerate(edu_order):
-        label = edu_labels_map.get(edu, edu)
-        fig.add_trace(go.Bar(
-            x=ct.index.astype(str),
-            y=ct_pct[edu].values,
-            name=label,
-            marker_color=colors[i % len(colors)],
-            text=[f"{v:.0f}%" if v > 0 else "" for v in ct_pct[edu].values],
-            textposition="inside",
-            hovertemplate=(
-                f"<b>{label}</b><br>Age: %{{x}}<br>"
-                "Count: %{customdata}<br>Share: %{y:.1f}%<extra></extra>"
-            ),
-            customdata=ct[edu].values,
-        ))
+    # Use heatmap for better visual impact
+    fig = go.Figure(data=go.Heatmap(
+        z=ct_pct.values.T,
+        x=ct.index.astype(str),
+        y=[edu_labels_map.get(e, e) for e in edu_order],
+        colorscale="YlOrRd",
+        text=[[f"{v:.0f}%" for v in row] for row in ct_pct.values.T],
+        texttemplate="%{text}",
+        hovertemplate="<b>%{y}</b><br>Age: %{x}<br>Share: %{z:.1f}%<extra></extra>",
+        colorbar=dict(title="比例 (%)"),
+    ))
 
     fig.update_layout(
-        barmode="stack",
-        title="Education Level Composition by Age Group",
-        xaxis_title="Age Group",
-        yaxis_title="Percentage (%)",
-        yaxis=dict(range=[0, 100]),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02,
-                    xanchor="center", x=0.5),
+        title="教育水平 × 年龄组 热力图",
+        xaxis_title="年龄组",
+        yaxis_title="教育水平",
         height=420,
-        margin=dict(l=50, r=20, t=60, b=50),
+        margin=dict(l=80, r=20, t=60, b=50),
     )
     return fig
 
@@ -652,8 +643,8 @@ def make_q2_community_sizes(net_metrics):
     comm_df = net_metrics["communities"]
     comm_sizes = comm_df["community"].value_counts().sort_index()
     fig = px.bar(x=comm_sizes.index.astype(str), y=comm_sizes.values,
-                 title=f"Community Sizes ({net_metrics['num_communities']} communities)",
-                 labels={"x": "Community ID", "y": "Members"},
+                 title=f"社区规模分布（{net_metrics['num_communities']} 个社区）",
+                 labels={"x": "社区 ID", "y": "成员数"},
                  color=comm_sizes.values, color_continuous_scale="Viridis")
     fig.update_layout(height=400, showlegend=False)
     return fig
@@ -800,44 +791,42 @@ def make_q2_edu_social(cross):
 
 
 def make_q2_edge_weights(sn):
-    """Optimised edge weight distribution chart (semi-log coordinates, polished grid and color gradient)."""
+    """Edge weight distribution violin plot with box overlay."""
 
-    fig = px.histogram(
-        sn,
-        x="weight",
-        nbins=50,
-        title="Edge Weight Distribution (Interaction Frequency)",
-        color_discrete_sequence=[PALETTE["accent"]],
-        log_y=True,
-        template="plotly_white",
-        labels={"weight": "Edge Weight (interactions)", "count": "Frequency"}
-    )
+    fig = go.Figure()
 
-    fig.update_traces(
-        marker_line_color='white',
-        marker_line_width=1.0,
-        opacity=0.9,
-        hovertemplate="<b>Interaction Range</b>: %{x}<br><b>Count</b>: %{y}<extra></extra>"
-    )
-
-    fig.update_yaxes(
-        tickvals=[1, 10, 100, 1000, 10000, 100000],
-        ticktext=["1", "10", "100", "1k", "10k", "100k"],
-        showgrid=True,
-        gridcolor="#EBF5FB"
-    )
-
-    fig.update_xaxes(
-        showgrid=True,
-        gridcolor="#F2F4F4"
-    )
+    # Add violin plot
+    fig.add_trace(go.Violin(
+        y=sn["weight"],
+        box_visible=True,
+        meanline_visible=True,
+        fillcolor=PALETTE["accent"],
+        opacity=0.6,
+        line_color=PALETTE["primary"],
+        name="边权重分布",
+        hoverinfo="y",
+    ))
 
     fig.update_layout(
+        title="互动频率分布（小提琴图）",
+        yaxis_title="边权重（互动次数）",
+        yaxis_type="log",
         height=450,
-        bargap=0.03,
-        title_font=dict(size=18, family="Arial", color="#2C3E50"),
-        hovermode="x unified",
-        margin=dict(l=60, r=40, t=60, b=50)
+        showlegend=False,
+        template="plotly_white",
+        margin=dict(l=60, r=40, t=60, b=50),
+    )
+
+    # Add annotations for key statistics
+    median_val = sn["weight"].median()
+    mean_val = sn["weight"].mean()
+    fig.add_annotation(
+        x=0.5, y=median_val,
+        text=f"中位数: {median_val:.0f}",
+        showarrow=True,
+        arrowhead=2,
+        ax=50, ay=-30,
+        font=dict(size=10, color=PALETTE["primary"]),
     )
 
     return fig
@@ -1017,7 +1006,7 @@ def make_q3_expense_pie(fin):
     expenses = fin[fin["total_amount"] < 0].copy()
     expenses["abs_amount"] = expenses["total_amount"].abs()
     fig = px.pie(values=expenses["abs_amount"], names=expenses["category"],
-                 title="Expense Breakdown by Category",
+                 title="支出构成",
                  color_discrete_sequence=px.colors.qualitative.Set2)
     fig.update_layout(height=420)
     return fig
