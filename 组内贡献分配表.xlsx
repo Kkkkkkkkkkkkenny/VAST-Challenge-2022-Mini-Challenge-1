@@ -1,0 +1,73 @@
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+wb = Workbook()
+ws = wb.active
+ws.title = "贡献分配"
+
+headers = ["序号", "姓名", "学号", "班级", "主要贡献内容", "贡献比例"]
+data = [
+    [1, "王甬拓", "2302100225", "大数据2302", "项目负责人，负责整体架构设计、数据处理流程开发、common.py核心引擎", 0.25],
+    [2, "周晨旭", "2302100227", "大数据2302", "Q1人口特征分析与可视化，Answer Sheet Q1部分编写", 0.20],
+    [3, "孙瑞笙", "2302100228", "大数据2302", "Q2社交网络分析，NetworkX算法实现，社区检测", 0.20],
+    [4, "张雅晨", "2302100224", "大数据2302", "Q3商业经济分析，产业分类与财务数据可视化", 0.20],
+    [5, "杨哲瑞", "2335030118", "大数据2302", "Q4城市概览整合，PPT制作，答辩准备", 0.15],
+]
+total_row = ["", "", "", "", "合计", "=SUM(E2:E6)"]
+
+header_font = Font(name="Arial", bold=True, color="FFFFFF", size=11)
+header_fill = PatternFill("solid", fgColor="2E4057")
+header_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+data_font = Font(name="Arial", size=11)
+data_align = Alignment(horizontal="center", vertical="center")
+desc_align = Alignment(horizontal="left", vertical="center", wrap_text=True)
+alt_fill = PatternFill("solid", fgColor="F2F2F2")
+total_fill = PatternFill("solid", fgColor="E8E8E8")
+total_font = Font(name="Arial", bold=True, size=11)
+
+thin_border = Border(
+    left=Side(style="thin"), right=Side(style="thin"),
+    top=Side(style="thin"), bottom=Side(style="thin"),
+)
+
+for col, h in enumerate(headers, 1):
+    c = ws.cell(row=1, column=col, value=h)
+    c.font = header_font
+    c.fill = header_fill
+    c.alignment = header_align
+    c.border = thin_border
+
+for r, row_data in enumerate(data, 2):
+    fill = alt_fill if r % 2 == 1 else PatternFill()
+    for col, val in enumerate(row_data, 1):
+        c = ws.cell(row=r, column=col, value=val)
+        c.font = data_font
+        c.alignment = desc_align if col == 5 else data_align
+        c.fill = fill
+        c.border = thin_border
+        if col == 6:
+            c.number_format = "0.00"
+
+tr = len(data) + 2
+for col, val in enumerate(total_row, 1):
+    c = ws.cell(row=tr, column=col, value=val)
+    c.font = total_font
+    c.fill = total_fill
+    c.alignment = desc_align if col == 5 else data_align
+    c.border = thin_border
+    if col == 6:
+        c.number_format = "0.00"
+
+ws.column_dimensions["A"].width = 6
+ws.column_dimensions["B"].width = 10
+ws.column_dimensions["C"].width = 14
+ws.column_dimensions["D"].width = 12
+ws.column_dimensions["E"].width = 50
+ws.column_dimensions["F"].width = 10
+
+ws.sheet_properties.pageSetUpPr = None
+ws.print_title_rows = "1:1"
+
+wb.save("/mnt/d/homework/visulization/finalwork/VAST-Challenge-2022/组内贡献分配表.xlsx")
+print("Done")
